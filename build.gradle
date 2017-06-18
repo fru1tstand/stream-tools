@@ -11,7 +11,6 @@ repositories {
 }
 
 dependencies {
-    compile group: 'com.google.dagger', name: 'dagger', version: '2.11'
     compile group: 'com.google.guava', name: 'guava', version: '22.0'
     compile group: 'com.1stleg', name: 'jnativehook', version: '2.1.0'
 
