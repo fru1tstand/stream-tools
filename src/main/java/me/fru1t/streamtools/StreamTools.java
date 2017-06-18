@@ -17,7 +17,7 @@ public class StreamTools extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Controller c = Controller.create(MainMenuController.class);
-        c.setUpStage(primaryStage);
+        c.provideStage(primaryStage);
         primaryStage.show();
     }
 }

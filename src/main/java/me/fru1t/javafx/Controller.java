@@ -4,6 +4,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import lombok.Getter;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -23,7 +24,7 @@ import java.net.URL;
  * for this class to work properly.
  */
 public abstract class Controller {
-    private static final String DEFAULT_TITLE = "";
+    protected static final String DEFAULT_TITLE = "";
 
     /**
      * Creates a new instance of an FXML layout returning the controller that controls it.
@@ -77,18 +78,31 @@ public abstract class Controller {
         return controller;
     }
 
-    protected Scene scene;
+    protected @Getter Stage stage;
+    protected @Getter Scene scene;
+    private @Getter String title;
 
     /**
-     * Passes a stage to the controller to set up (in terms of giving the screen, setting titles,
+     * Sets the title the stage should be set to. Sets the stage title if one exists within the
+     * controller.
+     * @param title The title.
+     */
+    public void setTitle(String title) {
+        this.title = title;
+        if (stage != null) {
+            stage.setTitle(title);
+        }
+    }
+
+    /**
+     * Override this method to customize the provided stage when this method is called. Passes a
+     * stage to the controller to set up (in terms of giving the screen, setting titles,
      * etc). This method should not call {@link Stage#show()} or any other visibility calls,
      * otherwise undefined behavior will occur.
      * @param stage The stage to set up.
      */
-    public abstract void setUpStage(Stage stage);
-
-    @Override
-    public String toString() {
-        return DEFAULT_TITLE;
+    public void provideStage(Stage stage) {
+        this.stage = stage;
+        stage.setTitle(title);
     }
 }

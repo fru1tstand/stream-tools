@@ -13,6 +13,7 @@ repositories {
 dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '22.0'
     compile group: 'com.1stleg', name: 'jnativehook', version: '2.1.0'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
 
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.16.16'
 
