@@ -1,5 +1,6 @@
 package me.fru1t.streamtools.controllers;
 
+import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,6 +12,7 @@ import javafx.stage.Stage;
 import me.fru1t.javafx.Controller;
 import me.fru1t.javafx.FXMLResource;
 import me.fru1t.javafx.TextInputDialogUtils;
+import me.fru1t.streamtools.StatisticsCore;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
@@ -42,11 +44,16 @@ public class MainMenuController extends Controller {
 
     // Class variables
     private final ObservableList<Controller> windowList;
+    private final StatisticsCore core;
     private boolean didSelectItem;
     private @Nullable Controller currentlySelectedController;
 
     public MainMenuController() {
+        // Set up main menu window
         setTitle(MAIN_MENU_TITLE);
+
+        // Get stats core
+        core = new StatisticsCore();
 
         // Wire list view to show what's in the windowList
         windowList = FXCollections.observableArrayList();
@@ -88,14 +95,24 @@ public class MainMenuController extends Controller {
                         updateButtonVisibility();
                     });
         });
+
+        AnimationTimer updater = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                core.notifyHandlers();
+            }
+        };
+        updater.start();
     }
 
     @Override
     public void provideStage(Stage stage) {
-        stage.setScene(scene);
+        super.provideStage(stage);
         stage.setResizable(false);
-        stage.setTitle(getTitle());
-        stage.setOnCloseRequest(event -> Platform.exit());
+        stage.setOnCloseRequest(event -> {
+            core.shutdown();
+            Platform.exit();
+        });
     }
 
     @FXML
@@ -112,10 +129,11 @@ public class MainMenuController extends Controller {
         stage.setOnCloseRequest(event -> windowListView.refresh());
 
         // Set up controller
-        Controller controller = Controller.create(TextStatsController.class);
+        TextStatsController controller = Controller.create(TextStatsController.class);
         controller.provideStage(stage);
         controller.setTitle(windowTitle);
         windowList.add(controller);
+        core.addEventHandler(controller);
         stage.show();
     }
 
@@ -154,6 +172,9 @@ public class MainMenuController extends Controller {
         Stage stage = currentlySelectedController.getStage();
         if (stage != null && stage.isShowing()) {
             stage.close();
+        }
+        if (currentlySelectedController instanceof StatisticsCore.Events) {
+            core.removeEventHandler((StatisticsCore.Events) currentlySelectedController);
         }
         windowList.remove(currentlySelectedController);
     }

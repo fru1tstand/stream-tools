@@ -74,6 +74,7 @@ public abstract class Controller {
                     + "fx:controller defined in the root element.");
         }
         controller.scene = new Scene(fxmlRoot);
+        controller.onSceneCreate();
 
         return controller;
     }
@@ -81,6 +82,13 @@ public abstract class Controller {
     protected @Getter Stage stage;
     protected @Getter Scene scene;
     private @Getter String title;
+
+    /**
+     * Called after the scene has been set for this controller.
+     */
+    public void onSceneCreate() {
+        // Method stub.
+    }
 
     /**
      * Sets the title the stage should be set to. Sets the stage title if one exists within the
@@ -104,5 +112,6 @@ public abstract class Controller {
     public void provideStage(Stage stage) {
         this.stage = stage;
         stage.setTitle(title);
+        stage.setScene(scene);
     }
 }
