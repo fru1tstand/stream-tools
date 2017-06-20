@@ -1,14 +1,17 @@
 package me.fru1t.javafx;
 
+import com.sun.istack.internal.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import lombok.Getter;
+import me.fru1t.streamtools.StreamTools;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.URL;
+import java.util.logging.Level;
 
 /**
  * Inflates and handles FXML resource file instances. Each FXML file should have a corresponding
@@ -24,7 +27,7 @@ import java.net.URL;
  * for this class to work properly.
  */
 public abstract class Controller {
-    protected static final String DEFAULT_TITLE = "";
+    private static final Logger LOGGER = Logger.getLogger(StreamTools.class);
 
     /**
      * Creates a new instance of an FXML layout returning the controller that controls it.
@@ -43,7 +46,7 @@ public abstract class Controller {
         }
         if (specAnnotation == null) {
             // This is a implementation error. We shouldn't gracefully handle it.
-            throw new RuntimeException(controllerClass.toString() + " requires the" +
+            throw new RuntimeException(controllerClass.toString() + " requires the " +
                     FXMLResource.class.toString() + " annotation.");
         }
 
@@ -79,6 +82,31 @@ public abstract class Controller {
         return controller;
     }
 
+    /**
+     * Creates and provides a new instance of an FXML layout.
+     * @param controllerClass The controller to create.
+     * @param stage The stage to hand the controller.
+     * @param <T> The type of controller.
+     * @return The controller object.
+     * @see #create(Class)
+     */
+    public static <T extends Controller> T create(Class<T> controllerClass, Stage stage) {
+        T controller = create(controllerClass);
+        controller.provideStage(stage);
+        return controller;
+    }
+
+    /**
+     * Creates a new instance of an FXML layout passing it a new stage.
+     * @param controllerClass The controller class to create.
+     * @param <T> The controller class.
+     * @return The controller instance.
+     * @see #create(Class)
+     */
+    public static <T extends Controller> T createWithNewStage(Class<T> controllerClass) {
+        return create(controllerClass, new Stage());
+    }
+
     protected @Getter Stage stage;
     protected @Getter Scene scene;
     private @Getter String title;
@@ -86,7 +114,7 @@ public abstract class Controller {
     /**
      * Called after the scene has been set for this controller.
      */
-    public void onSceneCreate() {
+    protected void onSceneCreate() {
         // Method stub.
     }
 
@@ -103,8 +131,24 @@ public abstract class Controller {
     }
 
     /**
+     * @return This controller's FXML resource path.
+     */
+    public String getFXMLResourcePath() {
+        Annotation[] annotations = this.getClass().getAnnotations();
+        for (Annotation annotation : annotations) {
+            if (annotation instanceof FXMLResource) {
+                return ((FXMLResource) annotation).value();
+            }
+        }
+
+        // This should never occur as it's one of the prerequisites to create this class.
+        throw new RuntimeException(this.getClass().getName()
+                + " doesn't have an FXMLResource annotation");
+    }
+
+    /**
      * Override this method to customize the provided stage when this method is called. Passes a
-     * stage to the controller to set up (in terms of giving the screen, setting titles,
+     * stage to the controller to set up (in terms of giving the screen, settings titles,
      * etc). This method should not call {@link Stage#show()} or any other visibility calls,
      * otherwise undefined behavior will occur.
      * @param stage The stage to set up.
@@ -113,5 +157,23 @@ public abstract class Controller {
         this.stage = stage;
         stage.setTitle(title);
         stage.setScene(scene);
+    }
+
+    public void show() {
+        if (stage != null) {
+            stage.show();
+        } else {
+            LOGGER.log(Level.WARNING, this.getClass().getName()
+                    + "#show() was called, but was never provided a stage.");
+        }
+    }
+
+    public void hide() {
+        if (stage != null) {
+            stage.hide();
+        } else {
+            LOGGER.log(Level.WARNING, this.getClass().getName()
+                    + "#hide() was called, but was never provided a stage.");
+        }
     }
 }

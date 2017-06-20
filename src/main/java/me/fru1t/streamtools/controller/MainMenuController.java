@@ -1,4 +1,4 @@
-package me.fru1t.streamtools.controllers;
+package me.fru1t.streamtools.controller;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
@@ -13,6 +13,7 @@ import me.fru1t.javafx.Controller;
 import me.fru1t.javafx.FXMLResource;
 import me.fru1t.javafx.TextInputDialogUtils;
 import me.fru1t.streamtools.StatisticsCore;
+import me.fru1t.streamtools.javafx.WindowWithSettingsController;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
@@ -36,17 +37,18 @@ public class MainMenuController extends Controller {
     private static final String STYLE_HIDDEN_WINDOW = "-fx-text-fill: #777; -fx-font-style: italic";
 
     // Element declarations
-    private @FXML ListView<Controller> windowListView;
+    private @FXML ListView<WindowWithSettingsController<?, ?>> windowListView;
     private @FXML Button renameWindowButton;
     private @FXML Button deleteWindowButton;
     private @FXML Button showWindowButton;
     private @FXML Button hideWindowButton;
+    private @FXML Button settingsWindowButton;
 
     // Class variables
-    private final ObservableList<Controller> windowList;
+    private final ObservableList<WindowWithSettingsController<?, ?>> windowList;
     private final StatisticsCore core;
     private boolean didSelectItem;
-    private @Nullable Controller currentlySelectedController;
+    private @Nullable WindowWithSettingsController<?, ?> currentlySelectedController;
 
     public MainMenuController() {
         // Set up main menu window
@@ -65,9 +67,9 @@ public class MainMenuController extends Controller {
             windowListView.setItems(windowList);
 
             // Tell the list how to show the contents of the windowList
-            windowListView.setCellFactory(param -> new ListCell<Controller>() {
+            windowListView.setCellFactory(param -> new ListCell<WindowWithSettingsController<?, ?>>() {
                 @Override
-                protected void updateItem(Controller item, boolean empty) {
+                protected void updateItem(WindowWithSettingsController<?, ?> item, boolean empty) {
                     super.updateItem(item, empty);
                     if (empty || item == null) {
                         setText("");
@@ -117,24 +119,8 @@ public class MainMenuController extends Controller {
 
     @FXML
     private void addTextStatsWindowButtonAction() {
-        // Ask for the window name
-        String windowTitle = TextInputDialogUtils.createShowAndWait(ASK_FOR_NAME_DIALOG_TITLE,
-                null, ASK_FOR_NAME_DIALOG_CONTENT_TEXT);
-        if (windowTitle == null) {
-            return;
-        }
-
-        // Create the stage and setup events
-        Stage stage = new Stage();
-        stage.setOnCloseRequest(event -> windowListView.refresh());
-
-        // Set up controller
-        TextStatsController controller = Controller.create(TextStatsController.class);
-        controller.provideStage(stage);
-        controller.setTitle(windowTitle);
-        windowList.add(controller);
+        TextStatsController controller = addWindow(TextStatsController.class);
         core.addEventHandler(controller);
-        stage.show();
     }
 
     @FXML
@@ -207,6 +193,15 @@ public class MainMenuController extends Controller {
         }
     }
 
+    @FXML
+    private void onSettingsWindowButtonAction() {
+        if (currentlySelectedController == null) {
+            return;
+        }
+
+        currentlySelectedController.showSettings();
+    }
+
     private void deselect() {
         // Deselect items if the user clicked on none of the items.
         if (!didSelectItem) {
@@ -221,11 +216,13 @@ public class MainMenuController extends Controller {
             deleteWindowButton.setDisable(true);
             showWindowButton.setDisable(true);
             hideWindowButton.setDisable(true);
+            settingsWindowButton.setDisable(true);
             return;
         }
 
         renameWindowButton.setDisable(false);
         deleteWindowButton.setDisable(false);
+        settingsWindowButton.setDisable(false);
 
         Stage stage = currentlySelectedController.getStage();
         if (stage != null && stage.isShowing()) {
@@ -235,5 +232,28 @@ public class MainMenuController extends Controller {
             showWindowButton.setDisable(false);
             hideWindowButton.setDisable(true);
         }
+    }
+
+    private <T extends WindowWithSettingsController<?, ?>> T addWindow(
+            Class<T> windowWithSettingsClass) {
+        // Ask for the window name
+        String windowTitle = TextInputDialogUtils.createShowAndWait(
+                ASK_FOR_NAME_DIALOG_TITLE, null, ASK_FOR_NAME_DIALOG_CONTENT_TEXT);
+        if (windowTitle == null) {
+            return null;
+        }
+
+        // Create the stage and setup events
+        Stage stage = new Stage();
+        stage.setOnCloseRequest(event -> windowListView.refresh());
+
+        // Set up controller
+        T controller = Controller.create(windowWithSettingsClass, stage);
+        controller.setTitle(windowTitle);
+        controller.show();
+        controller.showSettings();
+        windowList.add(controller);
+
+        return controller;
     }
 }
