@@ -20,13 +20,17 @@
             </font>
         </Label>
         <Label fx:id="windowName" layoutX="14.0" layoutY="31.0" text="&lt;window name&gt;" />
-        <ChoiceBox fx:id="fontName" layoutX="14.0" layoutY="77.0" prefHeight="25.0" prefWidth="189.0" />
+
         <Label layoutX="14.0" layoutY="60.0" text="Font" />
-        <ComboBox layoutX="216.0" layoutY="77.0" prefHeight="25.0" prefWidth="50.0" />
-        <Label layoutX="216.0" layoutY="60.0" text="Size" />
-        <CheckBox layoutX="14.0" layoutY="113.0" mnemonicParsing="false" text="Bold" />
-        <CheckBox layoutX="70.0" layoutY="113.0" mnemonicParsing="false" text="Italic" />
-        <TextArea layoutX="14.0" layoutY="221.0" prefHeight="87.0" prefWidth="252.0" promptText="What the text stats window should show. For example&#13;APM: {apm}" />
+        <ChoiceBox fx:id="fontName" layoutX="14.0" layoutY="77.0" prefHeight="25.0" prefWidth="160.0" />
+
+        <Label layoutX="188.0" layoutY="60.0" text="Size" />
+        <ComboBox fx:id="size" editable="true" layoutX="188.0" layoutY="77.0" prefHeight="25.0" prefWidth="78.0" />
+
+        <CheckBox fx:id="bold" layoutX="14.0" layoutY="113.0" mnemonicParsing="false" text="Bold" />
+        <CheckBox fx:id="italic" layoutX="70.0" layoutY="113.0" mnemonicParsing="false" text="Italic" />
+
+        <TextArea fx:id="content" layoutX="14.0" layoutY="221.0" prefHeight="87.0" prefWidth="252.0" promptText="What the text stats window should show. For example&#13;APM: {apm}" />
         <Label layoutX="14.0" layoutY="204.0" text="Content" />
         <SegmentedButton layoutX="146.0" layoutY="109.0" nodeOrientation="RIGHT_TO_LEFT" prefHeight="25.0" prefWidth="120.0">
             <buttons>
@@ -35,16 +39,21 @@
                 <ToggleButton fx:id="leftJustify" selected="true" />
             </buttons>
         </SegmentedButton>
+
+        <ColorPicker fx:id="textColor" layoutX="14.0" layoutY="162.0" prefWidth="119.0" />
+        <ColorPicker fx:id="backgroundColor" layoutX="147.0" layoutY="162.0" prefWidth="119.0" />
+
       <Label layoutX="14.0" layoutY="308.0" text="{apm} - Keyboard actions per minute&#13;{ppm} - Mouse pixels per minute&#13;{ta} - Total keyboard actions&#13;{tp} - Total mouse pixel movement" textFill="#808080">
          <font>
             <Font size="10.0" />
          </font>
       </Label>
-      <Button fx:id="settingsCancelButton" cancelButton="true" layoutX="14.0" layoutY="387.0"
-              mnemonicParsing="false" text="Cancel" />
-      <Button fx:id="settingsSaveButton" layoutX="214.0" layoutY="387.0" mnemonicParsing="false" prefWidth="50.0" text="Save" />
-      <ColorPicker fx:id="textColorPicker" layoutX="14.0" layoutY="162.0" prefWidth="119.0" />
-      <ColorPicker fx:id="backgroundColorPicker" layoutX="147.0" layoutY="162.0" prefWidth="119.0" />
+      <Button fx:id="settingsCancelButton" cancelButton="true" layoutX="14.0" layoutY="387.0" mnemonicParsing="false" text="Cancel" />
+      <Button fx:id="settingsSaveButton" layoutX="214.0" layoutY="387.0" mnemonicParsing="false"
+              prefWidth="50.0" text="Save" />
+        <Button fx:id="settingsApplyButton" layoutX="152.0" layoutY="387.0" prefWidth="50.0"
+                mnemonicParsing="false"
+        text="Apply" />
       <Label layoutX="14.0" layoutY="145.0" text="Text Color" />
         <Label layoutX="147.0" layoutY="145.0" text="Background Color" />
     </children>

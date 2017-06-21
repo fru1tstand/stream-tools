@@ -1,5 +1,8 @@
 package me.fru1t.streamtools.javafx;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.stage.Stage;
 import me.fru1t.javafx.Controller;
 import me.fru1t.streamtools.Settings;
 
@@ -11,13 +14,16 @@ import java.lang.reflect.ParameterizedType;
  * @param <S> The settings type.
  * @param <T> The settings controller type.
  */
-public abstract class WindowWithSettingsController<S extends Settings, T extends SettingsController<S>>
+public abstract class WindowWithSettingsController<S extends Settings<S>, T extends SettingsController<S>>
         extends Controller
         implements SettingsController.EventHandler<S> {
 
     private final SettingsController<S> settingsController;
 
     protected WindowWithSettingsController() {
+        // This constructor grabs the type T from whatever class extended
+        // WindowWithSettingsController. It then creates an instance of that SettingsController.
+
         // Grab the class WindowWithSettingsController<T>
         ParameterizedType windowWithSettingsControllerClass =
                 (ParameterizedType) getClass().getGenericSuperclass();
@@ -29,6 +35,24 @@ public abstract class WindowWithSettingsController<S extends Settings, T extends
 
         settingsController = Controller.createWithNewStage(settingsControllerClass);
         settingsController.addEventHandler(this);
+    }
+
+    @Override
+    public void provideStage(Stage stage) {
+        super.provideStage(stage);
+
+        // Set up scene resize listeners
+        stage.widthProperty().addListener((observable, oldValue, newValue) -> {
+            settingsController.currentSettings.setWindowWidth(newValue.doubleValue());
+            onSettingsChange(settingsController.currentSettings);
+        });
+        stage.heightProperty().addListener((observable, oldValue, newValue) -> {
+            settingsController.currentSettings.setWindowHeight(newValue.doubleValue());
+            onSettingsChange(settingsController.currentSettings);
+        });
+
+        // Update stage
+        onSettingsChange(settingsController.getCurrentSettings());
     }
 
     /**

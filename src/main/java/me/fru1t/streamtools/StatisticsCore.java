@@ -1,6 +1,5 @@
 package me.fru1t.streamtools;
 
-import lombok.Data;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
@@ -27,7 +26,7 @@ public class StatisticsCore implements NativeKeyListener, NativeMouseMotionListe
          * Fired when the JavaFX animation timer is ready.
          * @param keyboardAPM
          */
-        void onUpdate(int keyboardAPM, long mouseMPM);
+        void onStatsUpdate(int keyboardAPM, long mouseMPM);
     }
 
     private static class DataPoint {
@@ -106,7 +105,7 @@ public class StatisticsCore implements NativeKeyListener, NativeMouseMotionListe
         delta /= 60.0 * 1000; // 1 minute
 
         for (Events eventHandler : eventHandlers) {
-            eventHandler.onUpdate((int) (actions / delta), (long) (movement / delta));
+            eventHandler.onStatsUpdate((int) (actions / delta), (long) (movement / delta));
         }
     }
 

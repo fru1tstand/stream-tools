@@ -1,8 +1,16 @@
 package me.fru1t.streamtools.controller;
 
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.text.Font;
+import javafx.util.StringConverter;
 import me.fru1t.javafx.FXMLResource;
 import me.fru1t.streamtools.controller.settings.TextStatsSettings;
 import me.fru1t.streamtools.javafx.SettingsController;
@@ -10,23 +18,37 @@ import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 
-import javax.annotation.Nonnull;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @FXMLResource("/FXML/TextStatsSettings.fxml")
 public class TextStatsSettingsController extends SettingsController<TextStatsSettings> {
+    private static final Logger LOGGER =
+            Logger.getLogger(TextStatsSettingsController.class.getName());
+
+    private static final Integer[] FONT_SIZE_LIST = new Integer[] {
+            5, 8, 10, 12, 14, 16, 18, 22, 26, 32, 48, 54, 72};
 
     private @FXML ToggleButton leftJustify;
     private @FXML ToggleButton centerJustify;
     private @FXML ToggleButton rightJustify;
 
+    private @FXML ChoiceBox<String> fontName;
+    private @FXML ComboBox<Integer> size;
+    private @FXML CheckBox bold;
+    private @FXML CheckBox italic;
+    private @FXML ColorPicker textColor;
+    private @FXML ColorPicker backgroundColor;
+    private @FXML TextArea content;
+
     @Override
     public void onSceneCreate() {
         super.onSceneCreate();
 
-        // Load fonts
+        // Apply font awesome glyphs to text align buttons
         GlyphFont font = GlyphFontRegistry.font("FontAwesome");
         leftJustify.setGraphic(font.create(FontAwesome.Glyph.ALIGN_LEFT));
-        centerJustify.setGraphic(font.create(FontAwesome.Glyph.ALIGN_JUSTIFY));
+        centerJustify.setGraphic(font.create(FontAwesome.Glyph.ALIGN_CENTER));
         rightJustify.setGraphic(font.create(FontAwesome.Glyph.ALIGN_RIGHT));
 
         // TODO: Does this do anything?
@@ -34,21 +56,71 @@ public class TextStatsSettingsController extends SettingsController<TextStatsSet
         leftJustify.setToggleGroup(group);
         centerJustify.setToggleGroup(group);
         rightJustify.setToggleGroup(group);
+
+        // Load fonts
+        fontName.setItems(FXCollections.observableList(Font.getFamilies()));
+
+        // Default font sizes
+        size.setItems(FXCollections.observableArrayList(FONT_SIZE_LIST));
+        size.setConverter(new StringConverter<Integer>() {
+            @Override
+            public String toString(Integer object) {
+                return object + "";
+            }
+
+            @Override
+            public Integer fromString(String string) {
+                try {
+                    return Integer.parseInt(string);
+                } catch (Exception e) {
+                    LOGGER.log(Level.WARNING, e.getMessage());
+                    return TextStatsSettings.DEFAULT_SIZE;
+                }
+            }
+        });
     }
 
-    @Nonnull
     @Override
-    protected TextStatsSettings getSettings() {
-        return null;
+    protected void commitSettings() {
+        currentSettings.setFont(fontName.getValue());
+        currentSettings.setSize(size.getValue());
+        currentSettings.setBold(bold.isSelected());
+        currentSettings.setItalic(italic.isSelected());
+        currentSettings.setColor(textColor.getValue());
+        currentSettings.setBackgroundColor(backgroundColor.getValue());
+        currentSettings.setContent(content.getText());
+
+        currentSettings.setAlign(TextStatsSettings.ALIGN_LEFT);
+        if (centerJustify.isSelected()) {
+            currentSettings.setAlign(TextStatsSettings.ALIGN_CENTER);
+        } else if (rightJustify.isSelected()) {
+            currentSettings.setAlign(TextStatsSettings.ALIGN_RIGHT);
+        }
     }
 
     @Override
-    protected void reset() {
+    protected void refresh() {
+        fontName.setValue(currentSettings.getFont());
+        size.setValue(currentSettings.getSize());
+        bold.setSelected(currentSettings.isBold());
+        italic.setSelected(currentSettings.isItalic());
+        textColor.setValue(currentSettings.getColor());
+        backgroundColor.setValue(currentSettings.getBackgroundColor());
+        content.setText(currentSettings.getContent());
 
-    }
-
-    @Override
-    protected void reset(TextStatsSettings settings) {
-
+        leftJustify.setSelected(false);
+        centerJustify.setSelected(false);
+        rightJustify.setSelected(false);
+        switch (currentSettings.getAlign()) {
+            case TextStatsSettings.ALIGN_CENTER:
+                centerJustify.setSelected(true);
+                break;
+            case TextStatsSettings.ALIGN_LEFT:
+                leftJustify.setSelected(true);
+                break;
+            case TextStatsSettings.ALIGN_RIGHT:
+                rightJustify.setSelected(true);
+                break;
+        }
     }
 }
