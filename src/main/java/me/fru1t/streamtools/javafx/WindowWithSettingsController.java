@@ -36,6 +36,12 @@ public abstract class WindowWithSettingsController<S extends Settings<S>, T exte
     }
 
     @Override
+    public void setTitle(String title) {
+        super.setTitle(title);
+        settingsController.setTitle(title);
+    }
+
+    @Override
     public void provideStage(Stage stage) {
         super.provideStage(stage);
 
@@ -54,7 +60,7 @@ public abstract class WindowWithSettingsController<S extends Settings<S>, T exte
     }
 
     /**
-     * Shows the settings window.
+     * Shows this window's settings panel, or does nothing if it's already open.
      */
     public void showSettings() {
         settingsController.show();

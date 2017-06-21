@@ -1,9 +1,6 @@
 package me.fru1t.streamtools.controller;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Label;
-import javafx.stage.Stage;
 import me.fru1t.javafx.FXMLResource;
 import javafx.fxml.FXML;
 import me.fru1t.javafx.FXUtils;

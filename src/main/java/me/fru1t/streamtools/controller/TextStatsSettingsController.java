@@ -6,6 +6,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
@@ -40,6 +41,14 @@ public class TextStatsSettingsController extends SettingsController<TextStatsSet
     private @FXML ColorPicker textColor;
     private @FXML ColorPicker backgroundColor;
     private @FXML TextArea content;
+
+    private @FXML Label windowName;
+
+    @Override
+    public void setTitle(String title) {
+        super.setTitle(title);
+        windowName.setText(title);
+    }
 
     @Override
     public void onSceneCreate() {
