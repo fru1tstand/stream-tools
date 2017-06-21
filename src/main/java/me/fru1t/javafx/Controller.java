@@ -1,17 +1,16 @@
 package me.fru1t.javafx;
 
-import com.sun.istack.internal.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import lombok.Getter;
-import me.fru1t.streamtools.StreamTools;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Inflates and handles FXML resource file instances. Each FXML file should have a corresponding
@@ -27,7 +26,7 @@ import java.util.logging.Level;
  * for this class to work properly.
  */
 public abstract class Controller {
-    private static final Logger LOGGER = Logger.getLogger(StreamTools.class);
+    private static final Logger LOGGER = Logger.getLogger(Controller.class.getName());
 
     /**
      * Creates a new instance of an FXML layout returning the controller that controls it.

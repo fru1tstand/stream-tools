@@ -1,7 +1,5 @@
 package me.fru1t.streamtools.javafx;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.stage.Stage;
 import me.fru1t.javafx.Controller;
 import me.fru1t.streamtools.Settings;
