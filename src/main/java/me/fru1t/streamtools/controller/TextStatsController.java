@@ -1,6 +1,8 @@
 package me.fru1t.streamtools.controller;
 
+import javafx.geometry.HPos;
 import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
 import me.fru1t.javafx.FXMLResource;
 import javafx.fxml.FXML;
 import me.fru1t.javafx.FXUtils;
@@ -13,19 +15,36 @@ import me.fru1t.streamtools.javafx.WindowWithSettingsController;
 public class TextStatsController
         extends WindowWithSettingsController<TextStatsSettings, TextStatsSettingsController>
         implements StatisticsCore.Events {
+
+    private static final String ACTIONS_PER_MINUTE_PLACEHOLDER = "{apm}";
+    private static final String PIXELS_PER_MINUTE_PLACEHOLDER = "{ppm}";
+    private static final String TOTAL_ACTIONS_PLACEHOLDER = "{ta}";
+    private static final String TOTAL_PIXELS_PLACEHOLDER = "{tp}";
+
     private static final String TEXT_STATS_LABEL_STYLE = "-fx-font-family: \"%s\"; "
             + "-fx-font-size: %dpx; "
             + "-fx-text-alignment: %s; "
             + "-fx-font-weight: %s; "
             + "-fx-font-style: %s; "
-            + "-fx-color: %s;";
+            + "-fx-color: %s; ";
     private static final String ROOT_STYLE = "-fx-background-color: %s;";
 
     private @FXML Label textStatsLabel;
+    private String content;
 
     @Override
-    public void onStatsUpdate(int keyboardAPM, long mouseMPM) {
-        textStatsLabel.setText("APM: " + keyboardAPM + "\nMPM: " + mouseMPM);
+    public void onStatsUpdate(int keyboardAPM, long mousePPM, long totalActions, long totalPixels) {
+        textStatsLabel.setText(content
+                .replace(ACTIONS_PER_MINUTE_PLACEHOLDER, keyboardAPM + "")
+                .replace(PIXELS_PER_MINUTE_PLACEHOLDER, mousePPM + "")
+                .replace(TOTAL_ACTIONS_PLACEHOLDER, totalActions + "")
+                .replace(TOTAL_PIXELS_PLACEHOLDER, totalPixels + ""));
+    }
+
+    @Override
+    protected void onSceneCreate() {
+        super.onSceneCreate();
+        GridPane.setFillWidth(textStatsLabel, true);
     }
 
     @Override
@@ -37,10 +56,23 @@ public class TextStatsController
                 (settings.isBold() ? "bold" : "normal"),
                 (settings.isItalic() ? "italic" : "normal"),
                 FXUtils.colorToHex(settings.getColor())));
-        textStatsLabel.setPrefWidth(settings.getWindowWidth() - 20);
+
+        switch (settings.getAlign()) {
+            case TextStatsSettings.ALIGN_CENTER:
+                GridPane.setHalignment(textStatsLabel, HPos.CENTER);
+                break;
+            case TextStatsSettings.ALIGN_LEFT:
+                GridPane.setHalignment(textStatsLabel, HPos.LEFT);
+                break;
+            case TextStatsSettings.ALIGN_RIGHT:
+                GridPane.setHalignment(textStatsLabel, HPos.RIGHT);
+                break;
+        }
+
         scene.getRoot().setStyle(String.format(ROOT_STYLE,
                 FXUtils.colorToHex(settings.getBackgroundColor())));
         stage.setWidth(settings.getWindowWidth());
         stage.setHeight(settings.getWindowHeight());
+        content = settings.getContent();
     }
 }

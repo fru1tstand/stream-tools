@@ -25,10 +25,10 @@ public class TextStatsSettings extends Settings<TextStatsSettings> {
     private static final boolean DEFAULT_IS_BOLD = false;
     private static final boolean DEFAULT_IS_ITALIC = false;
     private static final Color DEFAULT_COLOR = Color.BLACK;
-    private static final Color DEFAULT_BACKGROUND_COLOR = Color.GREEN;
+    private static final Color DEFAULT_BACKGROUND_COLOR = Color.color(0, 1, 0);
     private static final String DEFAULT_CONTENT = "APM: {apm}\nPPM: {ppm}";
-    private static final double DEFAULT_WINDOW_HEIGHT = 300;
-    private static final double DEFAULT_WINDOW_WIDTH = 200;
+    private static final double DEFAULT_WINDOW_HEIGHT = 200;
+    private static final double DEFAULT_WINDOW_WIDTH = 300;
 
     private static final TextStatsSettings DEFAULT = TextStatsSettings.builder()
             .font(Font.getDefault().getFamily())

@@ -26,13 +26,13 @@ public class StatisticsCore implements NativeKeyListener, NativeMouseMotionListe
          * Fired when the JavaFX animation timer is ready.
          * @param keyboardAPM
          */
-        void onStatsUpdate(int keyboardAPM, long mouseMPM);
+        void onStatsUpdate(int keyboardAPM, long mousePPM, long totalActions, long totalPixels);
     }
 
     private static class DataPoint {
         int timeDeltaMS;
         int totalKeyboardActions;
-        long totalMouseMoveDistance;
+        long totalMouseMovePixels;
     }
 
     private static final int BUFFER_SIZE = 60 * 5; // seconds
@@ -40,6 +40,8 @@ public class StatisticsCore implements NativeKeyListener, NativeMouseMotionListe
     private final HashSet<Events> eventHandlers;
     private final DataPoint currentData;
     private final DataPoint[] data;
+    private long totalActions;
+    private long totalPixels;
 
     private Point lastMousePosition;
     private int dataPointer = 0;
@@ -53,6 +55,13 @@ public class StatisticsCore implements NativeKeyListener, NativeMouseMotionListe
         currentData = new DataPoint();
         lastTime = (new Date()).getTime();
         lastMousePosition = new Point(0, 0);
+        totalActions = 0;
+        totalPixels = 0;
+
+        // Disable JNativeHook's very verbose logging
+        Logger globalScreenLogger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
+        globalScreenLogger.setLevel(Level.WARNING);
+        globalScreenLogger.setUseParentHandlers(false);
 
         // Add hooks to JNativeHook
         try {
@@ -63,11 +72,6 @@ public class StatisticsCore implements NativeKeyListener, NativeMouseMotionListe
         }
         GlobalScreen.addNativeKeyListener(this);
         GlobalScreen.addNativeMouseMotionListener(this);
-
-        // Disable JNativeHook's very verbose logging
-        Logger globalScreenLogger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
-        globalScreenLogger.setLevel(Level.WARNING);
-        globalScreenLogger.setUseParentHandlers(false);
     }
 
     /**
@@ -100,15 +104,19 @@ public class StatisticsCore implements NativeKeyListener, NativeMouseMotionListe
             }
             delta += data.timeDeltaMS;
             actions += data.totalKeyboardActions;
-            movement += data.totalMouseMoveDistance;
+            movement += data.totalMouseMovePixels;
         }
         delta /= 60.0 * 1000; // 1 minute
 
         for (Events eventHandler : eventHandlers) {
-            eventHandler.onStatsUpdate((int) (actions / delta), (long) (movement / delta));
+            eventHandler.onStatsUpdate((int) (actions / delta), (long) (movement / delta),
+                    totalActions, totalPixels);
         }
     }
 
+    /**
+     * Shuts down the global hook and unregisters JNativeHook.
+     */
     public void shutdown() {
         GlobalScreen.removeNativeKeyListener(this);
         try {
@@ -130,7 +138,7 @@ public class StatisticsCore implements NativeKeyListener, NativeMouseMotionListe
     @Override
     public void nativeMouseMoved(NativeMouseEvent nativeMouseEvent) {
         synchronized (currentData) {
-            currentData.totalMouseMoveDistance
+            currentData.totalMouseMovePixels
                     += lastMousePosition.distance(nativeMouseEvent.getPoint());
             lastMousePosition.setLocation(nativeMouseEvent.getPoint());
         }
@@ -152,9 +160,11 @@ public class StatisticsCore implements NativeKeyListener, NativeMouseMotionListe
         synchronized (currentData) {
             thisTime = (new Date()).getTime();
             data[dataPointer].totalKeyboardActions = currentData.totalKeyboardActions;
-            data[dataPointer].totalMouseMoveDistance = currentData.totalMouseMoveDistance;
+            data[dataPointer].totalMouseMovePixels = currentData.totalMouseMovePixels;
+            totalActions += currentData.totalKeyboardActions;
+            totalPixels += currentData.totalMouseMovePixels;
             currentData.totalKeyboardActions = 0;
-            currentData.totalMouseMoveDistance = 0;
+            currentData.totalMouseMovePixels = 0;
         }
 
         data[dataPointer].timeDeltaMS = (int) (thisTime - lastTime);
