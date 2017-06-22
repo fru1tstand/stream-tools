@@ -64,7 +64,7 @@ public abstract class Controller {
         try {
             fxmlRoot = loader.load();
         } catch (IOException e) {
-            // We errored while opening a valid URL. This is indicative of a larger problem that's
+            // We erred while opening a valid URL. This is indicative of a larger problem that's
             // unrelated to us.
             throw new RuntimeException(e);
         }

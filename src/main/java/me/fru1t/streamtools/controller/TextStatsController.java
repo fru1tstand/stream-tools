@@ -5,7 +5,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import me.fru1t.javafx.FXMLResource;
 import javafx.fxml.FXML;
-import me.fru1t.javafx.FXUtils;
 import me.fru1t.streamtools.StatisticsCore;
 import me.fru1t.streamtools.controller.settings.TextStatsSettings;
 import me.fru1t.streamtools.javafx.WindowWithSettingsController;

@@ -24,7 +24,6 @@ public class StatisticsCore implements NativeKeyListener, NativeMouseMotionListe
     public interface Events {
         /**
          * Fired when the JavaFX animation timer is ready.
-         * @param keyboardAPM
          */
         void onStatsUpdate(int keyboardAPM, long mousePPM, long totalActions, long totalPixels);
     }
@@ -43,7 +42,7 @@ public class StatisticsCore implements NativeKeyListener, NativeMouseMotionListe
     private long totalActions;
     private long totalPixels;
 
-    private Point lastMousePosition;
+    private final Point lastMousePosition;
     private int dataPointer = 0;
     private long lastTime = 0;
     private long thisTime = 0;

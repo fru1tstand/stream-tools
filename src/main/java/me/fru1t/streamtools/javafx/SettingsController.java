@@ -193,7 +193,7 @@ public abstract class SettingsController<T extends Settings<T>> extends Controll
     }
 
     /**
-     * Fired when the save button is clicked. The implementor should commimt all GUI changes to
+     * Fired when the save button is clicked. The implementor should commit all GUI changes to
      * the {@link #currentSettings} object.
      */
     protected abstract void commitSettings();

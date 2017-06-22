@@ -5,18 +5,20 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<GridPane prefHeight="200.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.fru1t.streamtools.controller.TextStatsController">
+<GridPane prefHeight="200.0"
+          prefWidth="200.0"
+          xmlns="http://javafx.com/javafx/8.0.112"
+          xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="me.fru1t.streamtools.controller.TextStatsController">
     <columnConstraints>
-        <ColumnConstraints hgrow="NEVER" prefWidth="10.0" />
-        <ColumnConstraints hgrow="ALWAYS" />
-        <ColumnConstraints hgrow="NEVER" prefWidth="10.0" />
+        <ColumnConstraints hgrow="NEVER" prefWidth="10.0"/>
+        <ColumnConstraints hgrow="ALWAYS"/>
+        <ColumnConstraints hgrow="NEVER" prefWidth="10.0"/>
     </columnConstraints>
     <rowConstraints>
-        <RowConstraints prefHeight="10.0" vgrow="NEVER" />
-        <RowConstraints vgrow="ALWAYS" />
-        <RowConstraints prefHeight="10.0" vgrow="NEVER" />
+        <RowConstraints prefHeight="10.0" vgrow="NEVER"/>
+        <RowConstraints vgrow="ALWAYS"/>
+        <RowConstraints prefHeight="10.0" vgrow="NEVER"/>
     </rowConstraints>
-   <children>
-      <Label fx:id="textStatsLabel" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-   </children>
+    <Label fx:id="textStatsLabel" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 </GridPane>

@@ -1,8 +1,5 @@
 package me.fru1t.streamtools;
 
-import jdk.nashorn.internal.objects.annotations.Setter;
-import lombok.Getter;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -109,7 +106,7 @@ public abstract class Settings<T> {
             }
         } catch (IllegalAccessException e) {
             LOGGER.log(Level.SEVERE, "Tried to update setting for " + getClass().getName()
-                    + " but errored with: " + e.getMessage());
+                    + " but erred with: " + e.getMessage());
         }
     }
 }
