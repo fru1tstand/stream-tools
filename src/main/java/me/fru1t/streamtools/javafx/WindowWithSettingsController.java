@@ -36,33 +36,23 @@ public abstract class WindowWithSettingsController<S extends Settings<S>, T exte
     }
 
     @Override
-    public void setTitle(String title) {
-        super.setTitle(title);
-        settingsController.setTitle(title);
-    }
-
-    @Override
     public void provideStage(Stage stage) {
         super.provideStage(stage);
 
         // Set up scene resize listeners
-        stage.widthProperty().addListener((observable, oldValue, newValue) -> {
-            settingsController.currentSettings.setWindowWidth(newValue.doubleValue());
-            onSettingsChange(settingsController.currentSettings);
-        });
-        stage.heightProperty().addListener((observable, oldValue, newValue) -> {
-            settingsController.currentSettings.setWindowHeight(newValue.doubleValue());
-            onSettingsChange(settingsController.currentSettings);
-        });
+        stage.widthProperty().addListener((observable, oldValue, newValue)
+                -> onSettingsChange(settingsController.currentSettings));
+        stage.heightProperty().addListener((observable, oldValue, newValue)
+                -> onSettingsChange(settingsController.currentSettings));
 
         // Update stage
         onSettingsChange(settingsController.getCurrentSettings());
     }
 
     /**
-     * Shows this window's settings panel, or does nothing if it's already open.
+     * @return The settings controller for this window.
      */
-    public void showSettings() {
-        settingsController.show();
+    public SettingsController<S> getSettingsController() {
+        return settingsController;
     }
 }

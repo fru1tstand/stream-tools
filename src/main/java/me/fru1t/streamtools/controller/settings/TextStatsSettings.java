@@ -4,6 +4,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import lombok.Builder;
 import lombok.Data;
+import me.fru1t.javafx.FXUtils;
 import me.fru1t.streamtools.Settings;
 import me.fru1t.streamtools.javafx.DefaultSettings;
 
@@ -24,11 +25,14 @@ public class TextStatsSettings extends Settings<TextStatsSettings> {
     private static final String DEFAULT_ALIGN = ALIGN_LEFT;
     private static final boolean DEFAULT_IS_BOLD = false;
     private static final boolean DEFAULT_IS_ITALIC = false;
-    private static final Color DEFAULT_COLOR = Color.BLACK;
-    private static final Color DEFAULT_BACKGROUND_COLOR = Color.color(0, 1, 0);
+    private static final String DEFAULT_COLOR = "#000";
+    private static final String DEFAULT_BACKGROUND_COLOR = "#0F0";
     private static final String DEFAULT_CONTENT = "APM: {apm}\nPPM: {ppm}";
     private static final double DEFAULT_WINDOW_HEIGHT = 200;
     private static final double DEFAULT_WINDOW_WIDTH = 300;
+    private static final double DEFAULT_WINDOW_X = 0;
+    private static final double DEFAULT_WINDOW_Y = 0;
+    private static final String DEFAULT_WINDOW_NAME = "";
 
     private static final TextStatsSettings DEFAULT = TextStatsSettings.builder()
             .font(Font.getDefault().getFamily())
@@ -39,16 +43,14 @@ public class TextStatsSettings extends Settings<TextStatsSettings> {
             .color(DEFAULT_COLOR)
             .backgroundColor(DEFAULT_BACKGROUND_COLOR)
             .content(DEFAULT_CONTENT)
-            .build()
-            .setWindowHeight(DEFAULT_WINDOW_HEIGHT)
-            .setWindowWidth(DEFAULT_WINDOW_WIDTH);
+            .build();
 
     private @Nonnull String font;
     private int size;
     private @Nonnull String align;
     private boolean isBold;
     private boolean isItalic;
-    private @Nonnull Color color;
-    private @Nonnull Color backgroundColor;
+    private @Nonnull String color;
+    private @Nonnull String backgroundColor;
     private @Nonnull String content;
 }

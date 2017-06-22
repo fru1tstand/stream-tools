@@ -10,9 +10,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.StringConverter;
 import me.fru1t.javafx.FXMLResource;
+import me.fru1t.javafx.FXUtils;
 import me.fru1t.streamtools.controller.settings.TextStatsSettings;
 import me.fru1t.streamtools.javafx.SettingsController;
 import org.controlsfx.glyphfont.FontAwesome;
@@ -22,6 +24,9 @@ import org.controlsfx.glyphfont.GlyphFontRegistry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Controller for the TextStatsSettings window. This ultimately controls the TextStats window.
+ */
 @FXMLResource("/FXML/TextStatsSettings.fxml")
 public class TextStatsSettingsController extends SettingsController<TextStatsSettings> {
     private static final Logger LOGGER =
@@ -43,12 +48,6 @@ public class TextStatsSettingsController extends SettingsController<TextStatsSet
     private @FXML TextArea content;
 
     private @FXML Label windowName;
-
-    @Override
-    public void setTitle(String title) {
-        super.setTitle(title);
-        windowName.setText(title);
-    }
 
     @Override
     public void onSceneCreate() {
@@ -95,8 +94,8 @@ public class TextStatsSettingsController extends SettingsController<TextStatsSet
         currentSettings.setSize(size.getValue());
         currentSettings.setBold(bold.isSelected());
         currentSettings.setItalic(italic.isSelected());
-        currentSettings.setColor(textColor.getValue());
-        currentSettings.setBackgroundColor(backgroundColor.getValue());
+        currentSettings.setColor(FXUtils.colorToHex(textColor.getValue()));
+        currentSettings.setBackgroundColor(FXUtils.colorToHex(backgroundColor.getValue()));
         currentSettings.setContent(content.getText());
 
         currentSettings.setAlign(TextStatsSettings.ALIGN_LEFT);
@@ -113,8 +112,8 @@ public class TextStatsSettingsController extends SettingsController<TextStatsSet
         size.setValue(currentSettings.getSize());
         bold.setSelected(currentSettings.isBold());
         italic.setSelected(currentSettings.isItalic());
-        textColor.setValue(currentSettings.getColor());
-        backgroundColor.setValue(currentSettings.getBackgroundColor());
+        textColor.setValue(Color.web(currentSettings.getColor()));
+        backgroundColor.setValue(Color.web(currentSettings.getBackgroundColor()));
         content.setText(currentSettings.getContent());
 
         leftJustify.setSelected(false);

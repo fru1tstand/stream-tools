@@ -10,7 +10,9 @@ import me.fru1t.streamtools.StatisticsCore;
 import me.fru1t.streamtools.controller.settings.TextStatsSettings;
 import me.fru1t.streamtools.javafx.WindowWithSettingsController;
 
-
+/**
+ * Controls the TextStats window.
+ */
 @FXMLResource("/FXML/TextStats.fxml")
 public class TextStatsController
         extends WindowWithSettingsController<TextStatsSettings, TextStatsSettingsController>
@@ -55,7 +57,7 @@ public class TextStatsController
                 settings.getAlign(),
                 (settings.isBold() ? "bold" : "normal"),
                 (settings.isItalic() ? "italic" : "normal"),
-                FXUtils.colorToHex(settings.getColor())));
+                settings.getColor()));
 
         switch (settings.getAlign()) {
             case TextStatsSettings.ALIGN_CENTER:
@@ -69,10 +71,7 @@ public class TextStatsController
                 break;
         }
 
-        scene.getRoot().setStyle(String.format(ROOT_STYLE,
-                FXUtils.colorToHex(settings.getBackgroundColor())));
-        stage.setWidth(settings.getWindowWidth());
-        stage.setHeight(settings.getWindowHeight());
+        scene.getRoot().setStyle(String.format(ROOT_STYLE, settings.getBackgroundColor()));
         content = settings.getContent();
     }
 }

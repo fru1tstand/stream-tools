@@ -1,10 +1,15 @@
 package me.fru1t.streamtools.controller;
 
+import com.google.common.base.Utf8;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.MalformedJsonException;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -12,17 +17,36 @@ import javafx.stage.Stage;
 import me.fru1t.javafx.Controller;
 import me.fru1t.javafx.FXMLResource;
 import me.fru1t.javafx.TextInputDialogUtils;
+import me.fru1t.streamtools.Settings;
 import me.fru1t.streamtools.StatisticsCore;
+import me.fru1t.streamtools.Window;
 import me.fru1t.streamtools.javafx.WindowWithSettingsController;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * First window that appears that handles window management.
  */
 @FXMLResource("/FXML/MainMenu.fxml")
 public class MainMenuController extends Controller {
+    private static final String SETTINGS_SAVE_FILE = "settings.json";
+
     private static final String ASK_FOR_NAME_DIALOG_TITLE = "Add Window";
     private static final String ASK_FOR_NAME_DIALOG_CONTENT_TEXT =
             "What should the window title be?";
@@ -35,6 +59,9 @@ public class MainMenuController extends Controller {
 
     private static final String STYLE_ACTIVE_WINDOW = "-fx-text-fill: #000";
     private static final String STYLE_HIDDEN_WINDOW = "-fx-text-fill: #777; -fx-font-style: italic";
+
+    private static final Logger LOGGER = Logger.getLogger(MainMenuController.class.getName());
+    private static final Gson GSON = new Gson();
 
     // Element declarations
     private @FXML ListView<WindowWithSettingsController<?, ?>> windowListView;
@@ -51,52 +78,12 @@ public class MainMenuController extends Controller {
     private @Nullable WindowWithSettingsController<?, ?> currentlySelectedController;
 
     public MainMenuController() {
-        // Set up main menu window
-        setTitle(MAIN_MENU_TITLE);
-
         // Get stats core
         core = new StatisticsCore();
 
         // Wire list view to show what's in the windowList
         windowList = FXCollections.observableArrayList();
         didSelectItem = false;
-
-        // Set up window list view events and data
-        Platform.runLater(() -> {
-            // Give underlying data set
-            windowListView.setItems(windowList);
-
-            // Tell the list how to show the contents of the windowList
-            windowListView.setCellFactory(param -> new ListCell<WindowWithSettingsController<?, ?>>() {
-                @Override
-                protected void updateItem(WindowWithSettingsController<?, ?> item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setText("");
-                    } else {
-                        String title = item.getTitle();
-                        if (StringUtils.isBlank(title)) {
-                            setText(BLANK_TITLE_REPLACEMENT);
-                        } else {
-                            setText(item.getTitle());
-                        }
-
-                        setStyle(item.getStage().isShowing()
-                                ? STYLE_ACTIVE_WINDOW : STYLE_HIDDEN_WINDOW);
-
-                        updateButtonVisibility();
-                    }
-                }
-            });
-
-            // onSelectItem()
-            windowListView.getSelectionModel().selectedItemProperty().addListener(
-                    (observable, oldValue, newValue) -> {
-                        didSelectItem = true;
-                        currentlySelectedController = newValue;
-                        updateButtonVisibility();
-                    });
-        });
 
         AnimationTimer updater = new AnimationTimer() {
             @Override
@@ -108,13 +95,57 @@ public class MainMenuController extends Controller {
     }
 
     @Override
+    protected void onSceneCreate() {
+        super.onSceneCreate();
+
+        // Give underlying data set
+        windowListView.setItems(windowList);
+
+        // Tell the list how to show the contents of the windowList
+        windowListView.setCellFactory(param -> new ListCell<WindowWithSettingsController<?, ?>>() {
+            @Override
+            protected void updateItem(WindowWithSettingsController<?, ?> item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText("");
+                } else {
+                    String title = item.getStage().getTitle();
+                    if (StringUtils.isBlank(title)) {
+                        setText(BLANK_TITLE_REPLACEMENT);
+                    } else {
+                        setText(item.getStage().getTitle());
+                    }
+
+                    setStyle(item.getStage().isShowing()
+                            ? STYLE_ACTIVE_WINDOW : STYLE_HIDDEN_WINDOW);
+
+                    updateButtonVisibility();
+                }
+            }
+        });
+
+        // onSelectItem()
+        windowListView.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) -> {
+                    didSelectItem = true;
+                    currentlySelectedController = newValue;
+                    updateButtonVisibility();
+                });
+
+        // Load settings
+        load();
+    }
+
+    @Override
     public void provideStage(Stage stage) {
         super.provideStage(stage);
         stage.setResizable(false);
         stage.setOnCloseRequest(event -> {
             core.shutdown();
+            save();
             Platform.exit();
         });
+        stage.setTitle(MAIN_MENU_TITLE);
     }
 
     @FXML
@@ -145,7 +176,7 @@ public class MainMenuController extends Controller {
             return;
         }
 
-        currentlySelectedController.setTitle(windowTitle);
+        currentlySelectedController.getStage().setTitle(windowTitle);
         windowListView.refresh();
     }
 
@@ -199,7 +230,7 @@ public class MainMenuController extends Controller {
             return;
         }
 
-        currentlySelectedController.showSettings();
+        currentlySelectedController.getSettingsController().show();
     }
 
     private void deselect() {
@@ -249,11 +280,101 @@ public class MainMenuController extends Controller {
 
         // Set up controller
         T controller = Controller.create(windowWithSettingsClass, stage);
-        controller.setTitle(windowTitle);
+        controller.getStage().setTitle(windowTitle);
         controller.show();
-        controller.showSettings();
+        controller.getSettingsController().show();
         windowList.add(controller);
 
+        save();
+
         return controller;
+    }
+
+    private void save() {
+        ArrayList<Window> result = new ArrayList<>();
+        for (WindowWithSettingsController<?, ?> controller : windowList) {
+            Window window = new Window();
+            window.controllerClass = controller.getClass().getName();
+            window.settingsJson =
+                    GSON.toJson(controller.getSettingsController().getCurrentSettings());
+
+            window.title = controller.getStage().getTitle();
+            window.stageHeight = controller.getStage().getHeight();
+            window.stageWidth = controller.getStage().getWidth();
+            window.stageX = controller.getStage().getX();
+            window.stageY = controller.getStage().getY();
+
+            result.add(window);
+        }
+
+        try {
+            Files.write(Paths.get(SETTINGS_SAVE_FILE), GSON.toJson(result).getBytes());
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "Couldn't save settings: " + e.getMessage());
+        }
+
+    }
+
+    private void load() {
+        try {
+            String contents = new String(Files.readAllBytes(Paths.get(SETTINGS_SAVE_FILE)));
+            Window[] windows = GSON.fromJson(contents, Window[].class);
+            for (Window window : windows) {
+                @SuppressWarnings("unchecked")
+                WindowWithSettingsController<?, ?> controller = Controller.createWithNewStage(
+                        (Class<WindowWithSettingsController<?, ?>>)
+                                Class.forName(window.controllerClass));
+
+                Settings<?> settings = GSON.fromJson(window.settingsJson,
+                        controller.getSettingsController().getCurrentSettings().getClass());
+
+                controller.getSettingsController().update(settings);
+                controller.getStage().setTitle(window.title);
+                controller.getStage().setWidth(window.stageWidth);
+                controller.getStage().setHeight(window.stageHeight);
+                controller.getStage().setX(window.stageX);
+                controller.getStage().setY(window.stageY);
+
+                controller.show();
+                windowList.add(controller);
+
+                // Add to event handler if present.
+                if (controller instanceof StatisticsCore.Events) {
+                    core.addEventHandler((StatisticsCore.Events) controller);
+                }
+            }
+        } catch (JsonSyntaxException e) {
+            LOGGER.log(Level.WARNING, e.getMessage());
+            File existingFile = new File(SETTINGS_SAVE_FILE);
+            int i = 0;
+            File renamedFile = new File(i + "-" + SETTINGS_SAVE_FILE);
+            if (existingFile.exists()) {
+                while (renamedFile.exists()) {
+                    renamedFile = new File(++i + "-" + SETTINGS_SAVE_FILE);
+                }
+
+                if (!existingFile.renameTo(renamedFile)) {
+                    new Alert(Alert.AlertType.ERROR, "Sorry, I was unable to process your "
+                            + "settings file. It gave me this error: " + e.getMessage() + "\n\n I"
+                            + " also couldn't rename it, so I will shut down in order to protect "
+                            + "your precious settings. To fix, please rename, move, or delete the"
+                            + " settings file at " + existingFile.getAbsolutePath())
+                            .showAndWait();
+                    throw new RuntimeException("Settings file was invalid and couldn't rename. "
+                            + "Shutting down.");
+                } else {
+                    new Alert(Alert.AlertType.WARNING, "Sorry, I was unable to process your "
+                            + "settings file. It gave me this error: " + e.getMessage() + "\n\nI "
+                            + "have renamed it to " + renamedFile.getAbsolutePath() + " in order "
+                            + "to protect it, and I will continue starting up as if there were no"
+                            + " settings file")
+                            .showAndWait();
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "No settings file was found!");
+        } catch (ClassNotFoundException e) {
+            LOGGER.log(Level.WARNING, "Couldn't find controller class: " + e.getMessage());
+        }
     }
 }

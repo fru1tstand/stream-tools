@@ -11,12 +11,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.HashSet;
+import java.util.logging.Logger;
 
 /**
  * A specialized controller that controls a settings panel that requires a save and cancel button.
  * @param <T> The object type passed back to event listeners.
  */
 public abstract class SettingsController<T extends Settings<T>> extends Controller {
+    private static final Logger LOGGER = Logger.getLogger(SettingsController.class.getName());
+
     /**
      * Possible events for the SettingsController.
      */
@@ -184,7 +187,7 @@ public abstract class SettingsController<T extends Settings<T>> extends Controll
      * Updates the settings to the given settings object.
      * @param settings The new settings
      */
-    public void update(T settings) {
+    public void update(Settings<?> settings) {
         currentSettings.update(settings);
         refresh();
     }

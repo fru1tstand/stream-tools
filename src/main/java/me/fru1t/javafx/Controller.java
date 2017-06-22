@@ -108,25 +108,12 @@ public abstract class Controller {
 
     protected @Getter Stage stage;
     protected @Getter Scene scene;
-    private @Getter String title;
 
     /**
      * Called after the scene has been set for this controller.
      */
     protected void onSceneCreate() {
         // Method stub.
-    }
-
-    /**
-     * Sets the title the stage should be set to. Sets the stage title if one exists within the
-     * controller.
-     * @param title The title.
-     */
-    public void setTitle(String title) {
-        this.title = title;
-        if (stage != null) {
-            stage.setTitle(title);
-        }
     }
 
     /**
@@ -154,7 +141,6 @@ public abstract class Controller {
      */
     public void provideStage(Stage stage) {
         this.stage = stage;
-        stage.setTitle(title);
         stage.setScene(scene);
     }
 
