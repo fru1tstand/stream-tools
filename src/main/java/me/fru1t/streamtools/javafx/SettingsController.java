@@ -161,8 +161,8 @@ public abstract class SettingsController<T extends Settings<T>> extends Controll
     }
 
     @Override
-    public void provideStage(Stage stage) {
-        super.provideStage(stage);
+    public void onStageProvide(Stage stage) {
+        super.onStageProvide(stage);
         stage.setResizable(false);
     }
 

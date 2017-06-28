@@ -13,17 +13,37 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Inflates and handles FXML resource file instances. Each FXML file should have a corresponding
- * Controller class that handles the resource file's events and interactions. Within the FXML
- * file, the root element should have the <code>fx:controller</code> attribute defined like so:
+ * Handles creation and destroying of FXML resource stages and scenes. Each FXML file should have
+ * a corresponding Controller class that handles the resource file's events and interactions.
+ * Within the FXML file, the root element should have the <code>fx:controller</code> attribute
+ * defined like so:
  * <pre>
- *     <RootElement attribute1="value1"
- *                  fx:controller="fully.qualified.name.to.my.controller">
+ *     &lt;RootElement attribute1="value1"
+ *                  fx:controller="fully.qualified.name.to.my.controller"&gt;
  *          ...
- *     </RootElement>
+ *     &lt;/RootElement&gt;
  * </pre>
+ *
  * The controller class MUST be annotated with the {@link FXMLResource} annotation in order
- * for this class to work properly.
+ * for this class to work properly:
+ * <pre>
+ *     &#64;FXMLResource("path_to.fxml")
+ *     public class MyClass extends Controller { ... }
+ * </pre>
+ *
+ * A controller's lifecycle is as follows:
+ * <ol>
+ *     <li>{@link #create(Class)} or any derivative #create method is called which
+ *     triggers the FXMLLoader to instantiate a Controller object.</li>
+ *     <li>{@link #onSceneCreate()} is immediately called. Here, all
+ *     {@link javafx.fxml.FXML} annotated fields within the controller are already populated.</li>
+ *     <li>{@link #onStageProvide(Stage)} is eventually called. Note that this call
+ *     may not immediately proceed the #onSceneCreate call as the implementor may wait to give
+ *     a stage to the controller. A call to {@link #create(Class, Stage)} will
+ *     guarantee that #onStageProvide follows immediately after #onSceneCreate.</li>
+ *     <li>At this point, the controller is done setting up and normal usage may be assumed.</li>
+ *     <li>{@link #onShutdown()} is eventually called.</li>
+ * </ol>
  */
 public abstract class Controller {
     private static final Logger LOGGER = Logger.getLogger(Controller.class.getName());
@@ -91,7 +111,7 @@ public abstract class Controller {
      */
     public static <T extends Controller> T create(Class<T> controllerClass, Stage stage) {
         T controller = create(controllerClass);
-        controller.provideStage(stage);
+        controller.onStageProvide(stage);
         return controller;
     }
 
@@ -106,15 +126,9 @@ public abstract class Controller {
         return create(controllerClass, new Stage());
     }
 
+
     protected @Getter Stage stage;
     protected @Getter Scene scene;
-
-    /**
-     * Called after the scene has been set for this controller.
-     */
-    protected void onSceneCreate() {
-        // Method stub.
-    }
 
     /**
      * @return This controller's FXML resource path.
@@ -133,32 +147,70 @@ public abstract class Controller {
     }
 
     /**
+     * Shows this controller's stage if it contains one, and is not visible already. Otherwise,
+     * does nothing.
+     */
+    public void show() {
+        if (stage != null) {
+            stage.show();
+        } else {
+            LOGGER.log(Level.WARNING, this.getClass().getName()
+                    + "#show() was called, but this controller was never provided a stage.");
+        }
+    }
+
+    /**
+     * Hides this controller's stage if it contains one, and is already visible. Otherwise, does
+     * nothing.
+     */
+    public void hide() {
+        if (stage != null) {
+            stage.hide();
+        } else {
+            LOGGER.log(Level.WARNING, this.getClass().getName()
+                    + "#hide() was called, but this controller was never provided a stage.");
+        }
+    }
+
+    /**
      * Override this method to customize the provided stage when this method is called. Passes a
      * stage to the controller to set up (in terms of giving the screen, settings titles,
      * etc). This method should not call {@link Stage#show()} or any other visibility calls,
      * otherwise undefined behavior will occur.
      * @param stage The stage to set up.
      */
-    public void provideStage(Stage stage) {
+    public void onStageProvide(Stage stage) {
         this.stage = stage;
         stage.setScene(scene);
     }
 
-    public void show() {
-        if (stage != null) {
-            stage.show();
-        } else {
-            LOGGER.log(Level.WARNING, this.getClass().getName()
-                    + "#show() was called, but was never provided a stage.");
+    /**
+     * Cleans up and destroys internal references to JavaFX objects. Any implementing class
+     * should override this method and call this super method after the subclass's cleanup
+     * methods are already handled. This method is called when the entire program is about to
+     * shut down. This method is NOT CALLED when this controller's stage is closed or hidden.
+     */
+    public void onShutdown() {
+        if (stage != null && stage.isShowing()) {
+            stage.close();
         }
     }
 
-    public void hide() {
-        if (stage != null) {
-            stage.hide();
-        } else {
-            LOGGER.log(Level.WARNING, this.getClass().getName()
-                    + "#hide() was called, but was never provided a stage.");
-        }
+    // Optional "abstract" methods that aren't required to be overridden, but can be if the
+    // implementor requires them.
+    /**
+     * Called after the scene has been set for this controller. At this point, any object fields
+     * annotated with @{@link javafx.fxml.FXML} are populated with their respective components.
+     */
+    protected void onSceneCreate() {
+        // Method stub.
+    }
+
+    /**
+     * This method is called from the JavaFX thread, usually on an animation timer. Here a
+     * controller may update any items on scene.
+     */
+    public void onUpdate() {
+        // Method stub.
     }
 }

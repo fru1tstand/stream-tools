@@ -36,8 +36,8 @@ public abstract class WindowWithSettingsController<S extends Settings<S>, T exte
     }
 
     @Override
-    public void provideStage(Stage stage) {
-        super.provideStage(stage);
+    public void onStageProvide(Stage stage) {
+        super.onStageProvide(stage);
 
         // Set up scene resize listeners
         stage.widthProperty().addListener((observable, oldValue, newValue)

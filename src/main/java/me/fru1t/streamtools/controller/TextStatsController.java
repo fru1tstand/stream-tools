@@ -5,7 +5,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import me.fru1t.javafx.FXMLResource;
 import javafx.fxml.FXML;
-import me.fru1t.streamtools.StatisticsCore;
+import me.fru1t.streamtools.util.KeyboardAndMouseStatistics;
 import me.fru1t.streamtools.controller.settings.TextStatsSettings;
 import me.fru1t.streamtools.javafx.WindowWithSettingsController;
 
@@ -14,8 +14,7 @@ import me.fru1t.streamtools.javafx.WindowWithSettingsController;
  */
 @FXMLResource("/FXML/TextStats.fxml")
 public class TextStatsController
-        extends WindowWithSettingsController<TextStatsSettings, TextStatsSettingsController>
-        implements StatisticsCore.Events {
+        extends WindowWithSettingsController<TextStatsSettings, TextStatsSettingsController> {
 
     private static final String ACTIONS_PER_MINUTE_PLACEHOLDER = "{apm}";
     private static final String PIXELS_PER_MINUTE_PLACEHOLDER = "{ppm}";
@@ -31,21 +30,37 @@ public class TextStatsController
     private static final String ROOT_STYLE = "-fx-background-color: %s;";
 
     private @FXML Label textStatsLabel;
+
     private String content;
+    private final KeyboardAndMouseStatistics stats;
+
+    /**
+     * Use {@link me.fru1t.javafx.Controller#create(Class)} instead.
+     */
+    public TextStatsController() {
+        stats = new KeyboardAndMouseStatistics();
+    }
 
     @Override
-    public void onStatsUpdate(int keyboardAPM, long mousePPM, long totalActions, long totalPixels) {
+    public void onUpdate() {
+        KeyboardAndMouseStatistics.CurrentData data = stats.getCurrentData();
         textStatsLabel.setText(content
-                .replace(ACTIONS_PER_MINUTE_PLACEHOLDER, keyboardAPM + "")
-                .replace(PIXELS_PER_MINUTE_PLACEHOLDER, mousePPM + "")
-                .replace(TOTAL_ACTIONS_PLACEHOLDER, totalActions + "")
-                .replace(TOTAL_PIXELS_PLACEHOLDER, totalPixels + ""));
+                .replace(ACTIONS_PER_MINUTE_PLACEHOLDER, data.keyboardAPM + "")
+                .replace(PIXELS_PER_MINUTE_PLACEHOLDER, data.mousePPM + "")
+                .replace(TOTAL_ACTIONS_PLACEHOLDER, data.totalActions + "")
+                .replace(TOTAL_PIXELS_PLACEHOLDER, data.totalPixels + ""));
     }
 
     @Override
     protected void onSceneCreate() {
         super.onSceneCreate();
         GridPane.setFillWidth(textStatsLabel, true);
+    }
+
+    @Override
+    public void onShutdown() {
+        stats.shutdown();
+        super.onShutdown();
     }
 
     @Override

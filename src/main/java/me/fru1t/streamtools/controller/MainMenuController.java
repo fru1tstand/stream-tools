@@ -16,7 +16,6 @@ import me.fru1t.javafx.Controller;
 import me.fru1t.javafx.FXMLResource;
 import me.fru1t.javafx.TextInputDialogUtils;
 import me.fru1t.streamtools.Settings;
-import me.fru1t.streamtools.StatisticsCore;
 import me.fru1t.streamtools.Window;
 import me.fru1t.streamtools.javafx.WindowWithSettingsController;
 import org.apache.commons.lang3.StringUtils;
@@ -63,14 +62,10 @@ public class MainMenuController extends Controller {
 
     // Class variables
     private final ObservableList<WindowWithSettingsController<?, ?>> windowList;
-    private final StatisticsCore core;
     private boolean didSelectItem;
     private @Nullable WindowWithSettingsController<?, ?> currentlySelectedController;
 
     public MainMenuController() {
-        // Get stats core
-        core = new StatisticsCore();
-
         // Wire list view to show what's in the windowList
         windowList = FXCollections.observableArrayList();
         didSelectItem = false;
@@ -78,7 +73,9 @@ public class MainMenuController extends Controller {
         AnimationTimer updater = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                core.notifyHandlers();
+                for (WindowWithSettingsController<?, ?> controller : windowList) {
+                    controller.onUpdate();
+                }
             }
         };
         updater.start();
@@ -127,12 +124,14 @@ public class MainMenuController extends Controller {
     }
 
     @Override
-    public void provideStage(Stage stage) {
-        super.provideStage(stage);
+    public void onStageProvide(Stage stage) {
+        super.onStageProvide(stage);
         stage.setResizable(false);
         stage.setOnCloseRequest(event -> {
-            core.shutdown();
             save();
+            for (WindowWithSettingsController<?, ?> controller : windowList) {
+                controller.onShutdown();
+            }
             Platform.exit();
         });
         stage.setTitle(MAIN_MENU_TITLE);
@@ -140,8 +139,7 @@ public class MainMenuController extends Controller {
 
     @FXML
     private void addTextStatsWindowButtonAction() {
-        TextStatsController controller = addWindow(TextStatsController.class);
-        core.addEventHandler(controller);
+        addWindow(TextStatsController.class);
     }
 
     @FXML
@@ -157,12 +155,15 @@ public class MainMenuController extends Controller {
     @FXML
     private void onRenameWindowButtonAction() {
         if (currentlySelectedController == null) {
+            LOGGER.log(Level.WARNING, "Attempted to rename a window when there was none "
+                    + "selected. Did our UI update correctly?");
             return;
         }
 
-        String windowTitle = TextInputDialogUtils.createShowAndWait(RENAME_DIALOG_TITLE, null,
-                RENAME_DIALOG_CONTENT_TEXT);
+        String windowTitle = TextInputDialogUtils.createShowAndWait(
+                RENAME_DIALOG_TITLE, null, RENAME_DIALOG_CONTENT_TEXT);
         if (windowTitle == null) {
+            // User cancelled the dialog, don't rename
             return;
         }
 
@@ -173,45 +174,39 @@ public class MainMenuController extends Controller {
     @FXML
     private void onDeleteWindowButtonAction() {
         if (currentlySelectedController == null) {
+            LOGGER.log(Level.WARNING, "Attempted to delete a window when there was none "
+                    + "selected. Did our UI update correctly?");
             return;
         }
 
-        Stage stage = currentlySelectedController.getStage();
-        if (stage != null && stage.isShowing()) {
-            stage.close();
-        }
-        if (currentlySelectedController instanceof StatisticsCore.Events) {
-            core.removeEventHandler((StatisticsCore.Events) currentlySelectedController);
-        }
+        currentlySelectedController.onShutdown();
         windowList.remove(currentlySelectedController);
     }
 
     @FXML
     private void onShowWindowButtonAction() {
         if (currentlySelectedController == null) {
+            LOGGER.log(Level.WARNING, "Attempted to show a window when there was none "
+                    + "selected. Did our UI update correctly?");
             return;
         }
 
-        Stage stage = currentlySelectedController.getStage();
-        if (stage != null) {
-            stage.show();
-            updateButtonVisibility();
-            windowListView.refresh();
-        }
+        currentlySelectedController.show();
+        updateButtonVisibility();
+        windowListView.refresh();
     }
 
     @FXML
     private void onHideWindowButtonAction() {
         if (currentlySelectedController == null) {
+            LOGGER.log(Level.WARNING, "Attempted to hide a window when there was none "
+                    + "selected. Did our UI update correctly?");
             return;
         }
 
-        Stage stage = currentlySelectedController.getStage();
-        if (stage != null) {
-            stage.hide();
-            windowListView.refresh();
-            updateButtonVisibility();
-        }
+        currentlySelectedController.hide();
+        windowListView.refresh();
+        updateButtonVisibility();
     }
 
     @FXML
@@ -327,11 +322,6 @@ public class MainMenuController extends Controller {
 
                 controller.show();
                 windowList.add(controller);
-
-                // Add to event handler if present.
-                if (controller instanceof StatisticsCore.Events) {
-                    core.addEventHandler((StatisticsCore.Events) controller);
-                }
             }
         } catch (JsonSyntaxException e) {
             LOGGER.log(Level.WARNING, e.getMessage());
