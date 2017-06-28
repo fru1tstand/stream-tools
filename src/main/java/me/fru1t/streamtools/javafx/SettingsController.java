@@ -1,9 +1,7 @@
 package me.fru1t.streamtools.javafx;
 
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 import me.fru1t.javafx.Controller;
 import me.fru1t.streamtools.Settings;
@@ -13,19 +11,16 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.HashSet;
-import java.util.logging.Logger;
 
 /**
  * A specialized controller that controls a settings panel that requires a save and cancel button.
  * @param <T> The object type passed back to event listeners.
  */
 public abstract class SettingsController<T extends Settings<T>> extends Controller {
-    private static final Logger LOGGER = Logger.getLogger(SettingsController.class.getName());
-
     /**
      * Possible events for the SettingsController.
      */
-    public interface EventHandler<T extends Settings> {
+    public interface EventHandler<T extends Settings<T>> {
         void onSettingsChange(T settings);
     }
 

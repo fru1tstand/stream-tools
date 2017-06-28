@@ -36,6 +36,13 @@ public abstract class WindowWithSettingsController<S extends Settings<S>, T exte
     }
 
     @Override
+    public void onShutdown() {
+        settingsController.removeEventHandler(this);
+        settingsController.onShutdown();
+        super.onShutdown();
+    }
+
+    @Override
     public void onStageProvide(Stage stage) {
         super.onStageProvide(stage);
 
