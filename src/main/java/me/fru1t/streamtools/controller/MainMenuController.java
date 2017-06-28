@@ -250,13 +250,13 @@ public class MainMenuController extends Controller {
         }
     }
 
-    private <T extends WindowWithSettingsController<?, ?>> T addWindow(
+    private <T extends WindowWithSettingsController<?, ?>> void addWindow(
             Class<T> windowWithSettingsClass) {
         // Ask for the window name
         String windowTitle = TextInputDialogUtils.createShowAndWait(
                 ASK_FOR_NAME_DIALOG_TITLE, null, ASK_FOR_NAME_DIALOG_CONTENT_TEXT);
         if (windowTitle == null) {
-            return null;
+            return;
         }
 
         // Create the stage and setup events
@@ -271,8 +271,6 @@ public class MainMenuController extends Controller {
         windowList.add(controller);
 
         save();
-
-        return controller;
     }
 
     private void save() {
@@ -319,6 +317,7 @@ public class MainMenuController extends Controller {
                 controller.getStage().setHeight(window.stageHeight);
                 controller.getStage().setX(window.stageX);
                 controller.getStage().setY(window.stageY);
+                controller.getStage().setOnCloseRequest(event -> windowListView.refresh());
 
                 controller.show();
                 windowList.add(controller);
