@@ -1,5 +1,7 @@
 package me.fru1t.streamtools.controller;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
@@ -47,8 +49,6 @@ public class TextStatsSettingsController extends SettingsController<TextStatsSet
     private @FXML ColorPicker backgroundColor;
     private @FXML TextArea content;
 
-    private @FXML Label windowName;
-
     @Override
     public void onSceneCreate() {
         super.onSceneCreate();
@@ -58,12 +58,6 @@ public class TextStatsSettingsController extends SettingsController<TextStatsSet
         leftJustify.setGraphic(font.create(FontAwesome.Glyph.ALIGN_LEFT));
         centerJustify.setGraphic(font.create(FontAwesome.Glyph.ALIGN_CENTER));
         rightJustify.setGraphic(font.create(FontAwesome.Glyph.ALIGN_RIGHT));
-
-        // TODO: Does this do anything?
-        ToggleGroup group = new ToggleGroup();
-        leftJustify.setToggleGroup(group);
-        centerJustify.setToggleGroup(group);
-        rightJustify.setToggleGroup(group);
 
         // Load fonts
         fontName.setItems(FXCollections.observableList(Font.getFamilies()));
@@ -84,6 +78,21 @@ public class TextStatsSettingsController extends SettingsController<TextStatsSet
                     LOGGER.log(Level.WARNING, e.getMessage());
                     return TextStatsSettings.DEFAULT_SIZE;
                 }
+            }
+        });
+
+        // Combo box quirkiness
+        size.getEditor().focusedProperty().addListener((observable, wasFocused, isNowFocused) -> {
+            Integer newValue = TextStatsSettings.DEFAULT_SIZE;
+            try {
+                newValue = Integer.parseInt(size.getEditor().getText());
+            } catch (NumberFormatException e) {
+                LOGGER.log(Level.INFO, "User typed an invalid font size, so we're defaulting "
+                        + "to " + newValue);
+            }
+
+            if (!isNowFocused) {
+                size.setValue(newValue);
             }
         });
     }

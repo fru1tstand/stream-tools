@@ -12,73 +12,44 @@
 <?import javafx.scene.text.Font?>
 <?import org.controlsfx.control.SegmentedButton?>
 
-<AnchorPane prefHeight="425.0"
-            prefWidth="280.0"
-            xmlns="http://javafx.com/javafx/8.0.112"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="me.fru1t.streamtools.controller.TextStatsSettingsController">
-    <Label layoutX="14.0" layoutY="14.0" text="Editing Window">
+<AnchorPane prefHeight="400.0" prefWidth="280.0" xmlns="http://javafx.com/javafx/8.0.112"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.fru1t.streamtools.controller.TextStatsSettingsController">
+    <Label layoutX="14.0" layoutY="14.0" text="Mouse &amp; Keyboard Text Stats Settings">
         <font>
-            <Font name="System Bold" size="12.0"/>
+            <Font name="System Bold" size="12.0" />
         </font>
     </Label>
-    <Label fx:id="windowName" layoutX="14.0" layoutY="31.0" text="&lt;window name&gt;"/>
 
-    <Label layoutX="14.0" layoutY="60.0" text="Font"/>
-    <ChoiceBox fx:id="fontName" layoutX="14.0" layoutY="77.0" prefHeight="25.0" prefWidth="160.0"/>
+    <Label layoutX="14.0" layoutY="37.0" text="Font" />
+    <ChoiceBox fx:id="fontName" layoutX="14.0" layoutY="54.0" prefHeight="25.0" prefWidth="160.0" />
 
-    <Label layoutX="188.0" layoutY="60.0" text="Size"/>
-    <ComboBox fx:id="size"
-              editable="true"
-              layoutX="188.0"
-              layoutY="77.0"
-              prefHeight="25.0"
-              prefWidth="78.0"/>
+    <Label layoutX="188.0" layoutY="37.0" text="Size" />
+    <ComboBox fx:id="size" editable="true" layoutX="188.0" layoutY="54.0" prefHeight="25.0" prefWidth="78.0" />
 
-    <CheckBox fx:id="bold" layoutX="14.0" layoutY="113.0" mnemonicParsing="false" text="Bold"/>
-    <CheckBox fx:id="italic" layoutX="70.0" layoutY="113.0" mnemonicParsing="false" text="Italic"/>
+    <CheckBox fx:id="bold" layoutX="14.0" layoutY="90.0" mnemonicParsing="false" text="Bold" />
+    <CheckBox fx:id="italic" layoutX="70.0" layoutY="90.0" mnemonicParsing="false" text="Italic" />
 
-    <TextArea fx:id="content"
-              layoutX="14.0"
-              layoutY="221.0"
-              prefHeight="87.0"
-              prefWidth="252.0"
-              promptText="What the text stats window should show. For example&#13;APM: {apm}"/>
-    <Label layoutX="14.0" layoutY="204.0" text="Content"/>
-    <SegmentedButton layoutX="146.0"
-                     layoutY="109.0"
-                     nodeOrientation="RIGHT_TO_LEFT"
-                     prefHeight="25.0"
-                     prefWidth="120.0">
+    <TextArea fx:id="content" layoutX="14.0" layoutY="198.0" prefHeight="87.0" prefWidth="252.0" promptText="What the text stats window should show. For example&#13;APM: {apm}" />
+    <Label layoutX="14.0" layoutY="181.0" text="Content" />
+    <SegmentedButton layoutX="146.0" layoutY="86.0" nodeOrientation="RIGHT_TO_LEFT" prefHeight="25.0" prefWidth="120.0">
         <buttons>
-            <ToggleButton fx:id="rightJustify"/>
-            <ToggleButton fx:id="centerJustify"/>
-            <ToggleButton fx:id="leftJustify" selected="true"/>
+            <ToggleButton fx:id="rightJustify" />
+            <ToggleButton fx:id="centerJustify" />
+            <ToggleButton fx:id="leftJustify" selected="true" />
         </buttons>
     </SegmentedButton>
 
-    <ColorPicker fx:id="textColor" layoutX="14.0" layoutY="162.0" prefWidth="119.0"/>
-    <ColorPicker fx:id="backgroundColor" layoutX="147.0" layoutY="162.0" prefWidth="119.0"/>
+    <ColorPicker fx:id="textColor" layoutX="14.0" layoutY="139.0" prefWidth="119.0" />
+    <ColorPicker fx:id="backgroundColor" layoutX="147.0" layoutY="139.0" prefWidth="119.0" />
 
-    <Label layoutX="14.0"
-           layoutY="308.0"
-           text="{apm} - Keyboard actions per minute&#13;{ppm} - Mouse pixels per minute&#13;{ta} - Total keyboard actions&#13;{tp} - Total mouse pixel movement"
-           textFill="#808080">
+    <Label layoutX="14.0" layoutY="285.0" text="{apm} - Keyboard actions per minute&#13;{ppm} - Mouse pixels per minute&#13;{ta} - Total keyboard actions&#13;{tp} - Total mouse pixel movement" textFill="#808080">
         <font>
-          <Font size="10.0"/>
+          <Font size="10.0" />
         </font>
     </Label>
-    <Button fx:id="settingsCancelButton"
-            cancelButton="true"
-            layoutX="14.0"
-            layoutY="387.0"
-            mnemonicParsing="false"
-            text="Cancel"/>
-    <Button fx:id="settingsSaveButton" layoutX="214.0" layoutY="387.0" mnemonicParsing="false"
-            prefWidth="50.0" text="Save"/>
-    <Button fx:id="settingsApplyButton" layoutX="152.0" layoutY="387.0" prefWidth="50.0"
-            mnemonicParsing="false"
-            text="Apply"/>
-    <Label layoutX="14.0" layoutY="145.0" text="Text Color"/>
-    <Label layoutX="147.0" layoutY="145.0" text="Background Color"/>
+    <Button fx:id="settingsCancelButton" cancelButton="true" layoutX="14.0" layoutY="364.0" mnemonicParsing="false" text="Cancel" />
+    <Button fx:id="settingsSaveButton" layoutX="214.0" layoutY="364.0" mnemonicParsing="false" prefWidth="50.0" text="Save" />
+    <Button fx:id="settingsApplyButton" layoutX="152.0" layoutY="364.0" mnemonicParsing="false" prefWidth="50.0" text="Apply" />
+    <Label layoutX="14.0" layoutY="122.0" text="Text Color" />
+    <Label layoutX="147.0" layoutY="122.0" text="Background Color" />
 </AnchorPane>

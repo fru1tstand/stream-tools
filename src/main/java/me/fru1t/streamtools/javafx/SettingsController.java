@@ -1,7 +1,9 @@
 package me.fru1t.streamtools.javafx;
 
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 import me.fru1t.javafx.Controller;
 import me.fru1t.streamtools.Settings;
@@ -152,6 +154,9 @@ public abstract class SettingsController<T extends Settings<T>> extends Controll
             }
             SettingsController.this.stage.hide();
         });
+
+        // All controls should lose focus when the root is clicked
+        scene.getRoot().setOnMouseClicked(event -> scene.getRoot().requestFocus());
     }
 
     @Override
