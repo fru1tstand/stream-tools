@@ -8,7 +8,7 @@ import org.jnativehook.keyboard.NativeKeyListener;
 import org.jnativehook.mouse.NativeMouseEvent;
 import org.jnativehook.mouse.NativeMouseMotionListener;
 
-import java.awt.Point;
+import java.awt.*;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;

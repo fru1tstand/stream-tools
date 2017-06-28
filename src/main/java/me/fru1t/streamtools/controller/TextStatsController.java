@@ -1,13 +1,13 @@
 package me.fru1t.streamtools.controller;
 
+import javafx.fxml.FXML;
 import javafx.geometry.HPos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import me.fru1t.javafx.FXMLResource;
-import javafx.fxml.FXML;
-import me.fru1t.streamtools.util.KeyboardAndMouseStatistics;
 import me.fru1t.streamtools.controller.settings.TextStatsSettings;
 import me.fru1t.streamtools.javafx.WindowWithSettingsController;
+import me.fru1t.streamtools.util.KeyboardAndMouseStatistics;
 
 /**
  * Controls the TextStats window.
