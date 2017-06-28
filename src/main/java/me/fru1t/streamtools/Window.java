@@ -9,4 +9,5 @@ public class Window {
     public double stageX;
     public double stageY;
     public String title;
+    public boolean isVisible;
 }

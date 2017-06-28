@@ -286,6 +286,7 @@ public class MainMenuController extends Controller {
             window.stageWidth = controller.getStage().getWidth();
             window.stageX = controller.getStage().getX();
             window.stageY = controller.getStage().getY();
+            window.isVisible = controller.getStage().isShowing();
 
             result.add(window);
         }
@@ -319,11 +320,13 @@ public class MainMenuController extends Controller {
                 controller.getStage().setY(window.stageY);
                 controller.getStage().setOnCloseRequest(event -> windowListView.refresh());
 
-                controller.show();
+                if (window.isVisible) {
+                    controller.show();
+                }
                 windowList.add(controller);
             }
-        } catch (JsonSyntaxException e) {
-            LOGGER.log(Level.WARNING, e.getMessage());
+        } catch (JsonSyntaxException | NumberFormatException e) {
+            LOGGER.log(Level.WARNING, "Couldn't process the settings file.", e);
             File existingFile = new File(SETTINGS_SAVE_FILE);
             int i = 0;
             File renamedFile = new File(i + "-" + SETTINGS_SAVE_FILE);
