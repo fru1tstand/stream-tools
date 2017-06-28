@@ -9,6 +9,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
@@ -42,12 +43,16 @@ public class MainMenuController extends Controller {
     private static final String RENAME_DIALOG_TITLE = "Rename Window";
     private static final String RENAME_DIALOG_CONTENT_TEXT =
             "What should the new name for the window be?";
-
     private static final String MAIN_MENU_TITLE = "Fru1tstand's Stream Tools";
     private static final String BLANK_TITLE_REPLACEMENT = "<blank title>";
 
     private static final String STYLE_ACTIVE_WINDOW = "-fx-text-fill: #000";
     private static final String STYLE_HIDDEN_WINDOW = "-fx-text-fill: #777; -fx-font-style: italic";
+
+    private static final String FAILED_TO_SAVE_TEXT = "I was unable to save your settings. This "
+            + "was the error I got: %s. This is warning %d. I will stop showing this error after "
+            + "%d times.";
+    private static final int MAX_FAILED_TO_SAVE_DIALOGS = 3;
 
     private static final Logger LOGGER = Logger.getLogger(MainMenuController.class.getName());
     private static final Gson GSON = new Gson();
@@ -64,6 +69,7 @@ public class MainMenuController extends Controller {
     private final ObservableList<WindowWithSettingsController<?, ?>> windowList;
     private boolean didSelectItem;
     private @Nullable WindowWithSettingsController<?, ?> currentlySelectedController;
+    private int failedToSaveCount = 0;
 
     public MainMenuController() {
         // Wire list view to show what's in the windowList
@@ -120,7 +126,7 @@ public class MainMenuController extends Controller {
                 });
 
         // Load settings
-        load();
+        loadSettings();
     }
 
     @Override
@@ -128,7 +134,7 @@ public class MainMenuController extends Controller {
         super.onStageProvide(stage);
         stage.setResizable(false);
         stage.setOnCloseRequest(event -> {
-            save();
+            saveSettings();
             for (WindowWithSettingsController<?, ?> controller : windowList) {
                 controller.onShutdown();
             }
@@ -169,6 +175,7 @@ public class MainMenuController extends Controller {
 
         currentlySelectedController.getStage().setTitle(windowTitle);
         windowListView.refresh();
+        saveSettings();
     }
 
     @FXML
@@ -181,6 +188,7 @@ public class MainMenuController extends Controller {
 
         currentlySelectedController.onShutdown();
         windowList.remove(currentlySelectedController);
+        saveSettings();
     }
 
     @FXML
@@ -194,6 +202,7 @@ public class MainMenuController extends Controller {
         currentlySelectedController.show();
         updateButtonVisibility();
         windowListView.refresh();
+        saveSettings();
     }
 
     @FXML
@@ -207,6 +216,7 @@ public class MainMenuController extends Controller {
         currentlySelectedController.hide();
         windowListView.refresh();
         updateButtonVisibility();
+        saveSettings();
     }
 
     @FXML
@@ -270,10 +280,10 @@ public class MainMenuController extends Controller {
         controller.getSettingsController().show();
         windowList.add(controller);
 
-        save();
+        saveSettings();
     }
 
-    private void save() {
+    private void saveSettings() {
         ArrayList<Window> result = new ArrayList<>();
         for (WindowWithSettingsController<?, ?> controller : windowList) {
             Window window = new Window();
@@ -294,12 +304,20 @@ public class MainMenuController extends Controller {
         try {
             Files.write(Paths.get(SETTINGS_SAVE_FILE), GSON.toJson(result).getBytes());
         } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Couldn't save settings: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Couldn't save settings.", e);
+            if (failedToSaveCount < MAX_FAILED_TO_SAVE_DIALOGS) {
+                failedToSaveCount++;
+                (new Alert(Alert.AlertType.ERROR,
+                        String.format(FAILED_TO_SAVE_TEXT,
+                                e.getMessage(), failedToSaveCount, MAX_FAILED_TO_SAVE_DIALOGS),
+                        ButtonType.OK))
+                        .showAndWait();
+            }
         }
 
     }
 
-    private void load() {
+    private void loadSettings() {
         try {
             String contents = new String(Files.readAllBytes(Paths.get(SETTINGS_SAVE_FILE)));
             Window[] windows = GSON.fromJson(contents, Window[].class);
