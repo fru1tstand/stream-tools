@@ -3,8 +3,10 @@ package me.fru1t.streamtools.controller.settings;
 import javafx.scene.text.Font;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import me.fru1t.streamtools.Settings;
 import me.fru1t.streamtools.javafx.DefaultSettings;
+import me.fru1t.streamtools.util.KeyboardAndMouseStatistics;
 
 import javax.annotation.Nonnull;
 
@@ -14,6 +16,7 @@ import javax.annotation.Nonnull;
 @Data
 @Builder
 @DefaultSettings("DEFAULT")
+@EqualsAndHashCode(callSuper = false)
 public class TextStatsSettings extends Settings<TextStatsSettings> {
     public static final String ALIGN_LEFT = "left";
     public static final String ALIGN_CENTER = "center";
@@ -31,6 +34,7 @@ public class TextStatsSettings extends Settings<TextStatsSettings> {
     private static final double DEFAULT_WINDOW_X = 0;
     private static final double DEFAULT_WINDOW_Y = 0;
     private static final String DEFAULT_WINDOW_NAME = "";
+    private static final int DEFAULT_BUFFER_SIZE = KeyboardAndMouseStatistics.DEFAULT_BUFFER_SIZE;
 
     private static final TextStatsSettings DEFAULT = TextStatsSettings.builder()
             .font(Font.getDefault().getFamily())
@@ -41,6 +45,7 @@ public class TextStatsSettings extends Settings<TextStatsSettings> {
             .color(DEFAULT_COLOR)
             .backgroundColor(DEFAULT_BACKGROUND_COLOR)
             .content(DEFAULT_CONTENT)
+            .statsBufferSize(DEFAULT_BUFFER_SIZE)
             .build();
 
     private @Nonnull String font;
@@ -51,4 +56,5 @@ public class TextStatsSettings extends Settings<TextStatsSettings> {
     private @Nonnull String color;
     private @Nonnull String backgroundColor;
     private @Nonnull String content;
+    private int statsBufferSize;
 }

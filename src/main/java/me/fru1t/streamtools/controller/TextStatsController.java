@@ -42,7 +42,8 @@ public class TextStatsController
     }
 
     @Override
-    public void onUpdate() {
+    public void onUpdate(long now) {
+        stats.tick();
         KeyboardAndMouseStatistics.CurrentData data = stats.getCurrentData();
         textStatsLabel.setText(content
                 .replace(ACTIONS_PER_MINUTE_PLACEHOLDER, data.keyboardAPM + "")
@@ -87,5 +88,6 @@ public class TextStatsController
 
         scene.getRoot().setStyle(String.format(ROOT_STYLE, settings.getBackgroundColor()));
         content = settings.getContent();
+        stats.setBufferSize(settings.getStatsBufferSize());
     }
 }

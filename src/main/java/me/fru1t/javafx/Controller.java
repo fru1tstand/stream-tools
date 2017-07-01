@@ -209,8 +209,9 @@ public abstract class Controller {
     /**
      * This method is called from the JavaFX thread, usually on an animation timer. Here a
      * controller may update any items on scene.
+     * @param now The timestamp of the current frame.
      */
-    public void onUpdate() {
+    public void onUpdate(long now) {
         // Method stub.
     }
 }

@@ -80,7 +80,7 @@ public class MainMenuController extends Controller {
             @Override
             public void handle(long now) {
                 for (WindowWithSettingsController<?, ?> controller : windowList) {
-                    controller.onUpdate();
+                    controller.onUpdate(now);
                 }
             }
         };
@@ -101,19 +101,15 @@ public class MainMenuController extends Controller {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText("");
-                } else {
-                    String title = item.getStage().getTitle();
-                    if (StringUtils.isBlank(title)) {
-                        setText(BLANK_TITLE_REPLACEMENT);
-                    } else {
-                        setText(item.getStage().getTitle());
-                    }
-
-                    setStyle(item.getStage().isShowing()
-                            ? STYLE_ACTIVE_WINDOW : STYLE_HIDDEN_WINDOW);
-
-                    updateButtonVisibility();
+                    return;
                 }
+
+                setText(StringUtils.isBlank(item.getStage().getTitle())
+                        ? BLANK_TITLE_REPLACEMENT : item.getStage().getTitle());
+                setStyle(item.getStage().isShowing()
+                        ? STYLE_ACTIVE_WINDOW : STYLE_HIDDEN_WINDOW);
+
+                updateButtonVisibility();
             }
         });
 
@@ -146,6 +142,11 @@ public class MainMenuController extends Controller {
     @FXML
     private void addTextStatsWindowButtonAction() {
         addWindow(TextStatsController.class);
+    }
+
+    @FXML
+    private void addGraphStatsWindowButtonAction() {
+        addWindow(GraphStatsController.class);
     }
 
     @FXML

@@ -1,5 +1,7 @@
 package me.fru1t.streamtools.util;
 
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import lombok.Data;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
@@ -32,10 +34,19 @@ public class KeyboardAndMouseStatistics implements NativeKeyListener, NativeMous
         public final long totalPixels;
     }
 
-    private static final int BUFFER_SIZE = 60 * 5; // seconds
+    private static final Logger LOGGER =
+            Logger.getLogger(KeyboardAndMouseStatistics.class.getName());
+    private static final String JNATIVEHOOK_NO_START_ALERT_BODY =
+            "Couldn't start JNativeHook due to the following error: ";
+    private static final String JNATIVEHOOK_NO_END_ALERT_BODY =
+            "Couldn't shut down JNativeHook due to the following error: ";
+    public static final int DEFAULT_BUFFER_SIZE = 60 * 5; // frames
+
+    private static final Object jNativeHookInstancesSynchronizer = new Object();
+    private static int jNativeHookInstances = 0;
 
     private final DataPoint currentData;
-    private final DataPoint[] data;
+    private DataPoint[] data;
     private long totalActions;
     private long totalPixels;
 
@@ -44,9 +55,24 @@ public class KeyboardAndMouseStatistics implements NativeKeyListener, NativeMous
     private long lastTime = 0;
     private long thisTime = 0;
 
+    /**
+     * Creates a new KeyboardAndMouseStatistics object with the default buffer size of
+     * {@value DEFAULT_BUFFER_SIZE} frames.
+     */
     public KeyboardAndMouseStatistics() {
+        this(DEFAULT_BUFFER_SIZE);
+    }
+
+    /**
+     * Creates a new KeyboardAndMouseStatistics object with the given buffer size for calculating
+     * averages. One buffer slot is used every {@link #getCurrentData()} call which,
+     * theoretically, should be every animation timer tick. The tick rate is different for each
+     * machine and should match the user's monitor's refresh rate.
+     * @param bufferSize
+     */
+    public KeyboardAndMouseStatistics(int bufferSize) {
         // Initializing
-        data = new DataPoint[BUFFER_SIZE];
+        data = new DataPoint[bufferSize];
         currentData = new DataPoint();
         lastTime = (new Date()).getTime();
         lastMousePosition = new Point(0, 0);
@@ -59,12 +85,21 @@ public class KeyboardAndMouseStatistics implements NativeKeyListener, NativeMous
         globalScreenLogger.setUseParentHandlers(false);
 
         // Add hooks to JNativeHook
-        try {
-            GlobalScreen.registerNativeHook();
-        } catch (NativeHookException e) {
-            e.printStackTrace();
-            System.exit(1);
+        synchronized (jNativeHookInstancesSynchronizer) {
+            if (jNativeHookInstances == 0) {
+                try {
+                    GlobalScreen.registerNativeHook();
+                } catch (NativeHookException e) {
+                    LOGGER.log(Level.SEVERE, "Couldn't start JNativeHook.", e);
+                    (new Alert(Alert.AlertType.WARNING,
+                            JNATIVEHOOK_NO_START_ALERT_BODY + e.getMessage(),
+                            ButtonType.OK))
+                            .showAndWait();
+                }
+            }
+            ++jNativeHookInstances;
         }
+
         GlobalScreen.addNativeKeyListener(this);
         GlobalScreen.addNativeMouseMotionListener(this);
     }
@@ -73,19 +108,19 @@ public class KeyboardAndMouseStatistics implements NativeKeyListener, NativeMous
      * @return The current data metrics for the most recent time slice.
      */
     public CurrentData getCurrentData() {
-        tick();
-
         // Calculate results
         double delta = 0;
         long actions = 0;
         long movement = 0;
-        for (DataPoint data : data) {
-            if (data == null) {
-                continue;
+        synchronized (currentData) {
+            for (DataPoint data : data) {
+                if (data == null) {
+                    continue;
+                }
+                delta += data.timeDeltaMS;
+                actions += data.totalKeyboardActions;
+                movement += data.totalMouseMovePixels;
             }
-            delta += data.timeDeltaMS;
-            actions += data.totalKeyboardActions;
-            movement += data.totalMouseMovePixels;
         }
         delta /= 60.0 * 1000; // 1 minute
 
@@ -97,14 +132,46 @@ public class KeyboardAndMouseStatistics implements NativeKeyListener, NativeMous
     }
 
     /**
+     * Sets buffer size to determine averages for the statistics. Each {@link #getCurrentData()}
+     * call consumes a single frame in the buffer. Theoretically, #getCurrentData is called every
+     * animation frame redraw, which is equivalent to the user's monitor's refresh rate. Hence,
+     * on a 60Hz monitor, a buffer size of 60 would be a 1 second window.
+     * Ignores any invalid buffer sizes (ie. < 1).
+     * @param bufferSize The size of the buffer.
+     */
+    public void setBufferSize(int bufferSize) {
+        if (bufferSize < 1) {
+            return;
+        }
+        synchronized (currentData) {
+            data = new DataPoint[bufferSize];
+            dataPointer = 0;
+        }
+    }
+
+    public int getBufferSize() {
+        return data.length;
+    }
+
+    /**
      * Shuts down the global hook and unregisters JNativeHook.
      */
     public void shutdown() {
         GlobalScreen.removeNativeKeyListener(this);
-        try {
-            GlobalScreen.unregisterNativeHook();
-        } catch (NativeHookException e) {
-            e.printStackTrace();
+
+        synchronized (jNativeHookInstancesSynchronizer) {
+            if (jNativeHookInstances == 1) {
+                try {
+                    GlobalScreen.unregisterNativeHook();
+                } catch (NativeHookException e) {
+                    LOGGER.log(Level.SEVERE, "Couldn't stop JNativeHook.", e);
+                    (new Alert(Alert.AlertType.WARNING,
+                            JNATIVEHOOK_NO_END_ALERT_BODY + e.getMessage(),
+                            ButtonType.OK))
+                            .showAndWait();
+                }
+            }
+            --jNativeHookInstances;
         }
     }
 
@@ -133,13 +200,13 @@ public class KeyboardAndMouseStatistics implements NativeKeyListener, NativeMous
         }
     }
 
-    private void tick() {
-        if (data[dataPointer] == null) {
-            data[dataPointer] = new DataPoint();
-        }
-
+    public void tick() {
         // Store current data into data
         synchronized (currentData) {
+            if (data[dataPointer] == null) {
+                data[dataPointer] = new DataPoint();
+            }
+
             thisTime = (new Date()).getTime();
             data[dataPointer].totalKeyboardActions = currentData.totalKeyboardActions;
             data[dataPointer].totalMouseMovePixels = currentData.totalMouseMovePixels;
@@ -147,9 +214,10 @@ public class KeyboardAndMouseStatistics implements NativeKeyListener, NativeMous
             totalPixels += currentData.totalMouseMovePixels;
             currentData.totalKeyboardActions = 0;
             currentData.totalMouseMovePixels = 0;
+
+            data[dataPointer].timeDeltaMS = (int) (thisTime - lastTime);
         }
 
-        data[dataPointer].timeDeltaMS = (int) (thisTime - lastTime);
         lastTime = thisTime;
 
         if (dataPointer + 1 >= data.length) {
