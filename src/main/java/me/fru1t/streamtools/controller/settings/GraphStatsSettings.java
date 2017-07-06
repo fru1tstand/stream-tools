@@ -24,8 +24,9 @@ public class GraphStatsSettings extends Settings<GraphStatsSettings> {
     private static final int DEFAULT_STATS_BUFFER_SIZE =
             KeyboardAndMouseStatistics.DEFAULT_BUFFER_SIZE;
     private static final int DEFAULT_GRAPH_POINTS = 30;
-    private static final long DEFAULT_HISTORY_TIME_MS = 1000 * 15; // 1000 ms per second
+    private static final long DEFAULT_HISTORY_TIME_MS = 1000 * 15; // 15 seconds
     private static final int DEFAULT_PADDING = 5;
+    private static final String DEFAULT_BACKGROUND_COLOR = "#0f0";
 
     private static final boolean DEFAULT_ENABLE_DOTS = true;
     private static final int DEFAULT_DOT_SIZE = 20;
@@ -33,7 +34,12 @@ public class GraphStatsSettings extends Settings<GraphStatsSettings> {
 
     private static final boolean DEFAULT_ENABLE_LINE = true;
     private static final int DEFAULT_LINE_WIDTH = 2;
-    private static final String DEFAULT_LINE_COLOR = FXUtils.colorToHex(Color.YELLOW);
+    private static final String DEFAULT_LINE_COLOR = FXUtils.colorToHex(Color.AQUA);
+
+    private static final boolean DEFAULT_ENABLE_BAR = true;
+    private static final int DEFAULT_BAR_WIDTH = 10;
+    private static final String DEFAULT_BAR_COLOR = FXUtils.colorToHex(Color.WHEAT);
+
 
     // Lombok automatically fills in default field values via the @Default annotation.
     private static final GraphStatsSettings DEFAULT = GraphStatsSettings.builder().build();
@@ -49,6 +55,8 @@ public class GraphStatsSettings extends Settings<GraphStatsSettings> {
     // The number of datapoints to display on the graph at any one time.
     private @Default int graphPoints = DEFAULT_GRAPH_POINTS;
 
+    private @Default String backgroundColor = DEFAULT_BACKGROUND_COLOR;
+
     private @Default int paddingTop = DEFAULT_PADDING;
     private @Default int paddingRight = DEFAULT_PADDING;
     private @Default int paddingBottom = DEFAULT_PADDING;
@@ -63,4 +71,9 @@ public class GraphStatsSettings extends Settings<GraphStatsSettings> {
     private @Default boolean enableLine = DEFAULT_ENABLE_LINE;
     private @Default int lineWidth = DEFAULT_LINE_WIDTH;
     private @Default @Nonnull String lineColor = DEFAULT_LINE_COLOR; // In hex string form.
+
+    // ** Bar
+    private @Default boolean enableBars = DEFAULT_ENABLE_BAR;
+    private @Default int barWidth = DEFAULT_BAR_WIDTH;
+    private @Default @Nonnull String barColor = DEFAULT_BAR_COLOR;
 }

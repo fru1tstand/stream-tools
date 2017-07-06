@@ -14,6 +14,9 @@ import me.fru1t.streamtools.util.KeyboardAndMouseStatistics;
 public class GraphStatsController
         extends WindowWithSettingsController<GraphStatsSettings, GraphStatsSettingsController> {
 
+    private static final String CANVAS_STYLE = "-fx-background-color: transparent;";
+    private static final String ROOT_STYLE = "-fx-background-color: %s";
+
     private @FXML Canvas canvas;
     private GraphicsContext ctx;
     private final KeyboardAndMouseStatistics stats;
@@ -33,6 +36,7 @@ public class GraphStatsController
     private transient long msBetweenPoints;
     private transient Color dotColor;
     private transient Color lineColor;
+    private transient Color barColor;
 
     /**
      * Use {@link me.fru1t.javafx.Controller#create(Class)} or any #create derivative to
@@ -50,6 +54,8 @@ public class GraphStatsController
         // Set up canvas resizing
         scene.widthProperty().addListener((observable, oldValue, newValue) -> updateCanvasSize());
         scene.heightProperty().addListener((observable, oldValue, newValue) -> updateCanvasSize());
+
+        canvas.setStyle(CANVAS_STYLE);
     }
 
     @Override
@@ -113,6 +119,16 @@ public class GraphStatsController
                     hasInitialPoint = true;
                 }
             }
+
+            // Bars
+            if (settings.isEnableBars()) {
+                ctx.setFill(barColor);
+                ctx.fillRect(
+                        x - settings.getBarWidth() / 2,
+                        y,
+                        settings.getBarWidth(),
+                        canvas.getHeight() - y - settings.getDotSize() / 2);
+            }
         }
 
         if (settings.isEnableLine()) {
@@ -141,6 +157,9 @@ public class GraphStatsController
         msBetweenPoints = settings.getGraphHistoryTimeMS() / settings.getGraphPoints();
         dotColor = Color.web(settings.getDotColor());
         lineColor = Color.web(settings.getLineColor());
+        barColor = Color.web(settings.getBarColor());
+
+        scene.getRoot().setStyle(String.format(ROOT_STYLE, settings.getBackgroundColor()));
 
         updateCanvasSize();
     }

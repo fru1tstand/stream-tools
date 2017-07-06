@@ -2,6 +2,7 @@ package me.fru1t.streamtools.controller.settings;
 
 import javafx.scene.text.Font;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import me.fru1t.streamtools.Settings;
@@ -29,32 +30,21 @@ public class TextStatsSettings extends Settings<TextStatsSettings> {
     private static final String DEFAULT_COLOR = "#000";
     private static final String DEFAULT_BACKGROUND_COLOR = "#0F0";
     private static final String DEFAULT_CONTENT = "APM: {apm}\nPPM: {ppm}";
-    private static final double DEFAULT_WINDOW_HEIGHT = 200;
-    private static final double DEFAULT_WINDOW_WIDTH = 300;
-    private static final double DEFAULT_WINDOW_X = 0;
-    private static final double DEFAULT_WINDOW_Y = 0;
-    private static final String DEFAULT_WINDOW_NAME = "";
-    private static final int DEFAULT_BUFFER_SIZE = KeyboardAndMouseStatistics.DEFAULT_BUFFER_SIZE;
+    private static final int DEFAULT_STATS_BUFFER_SIZE =
+            KeyboardAndMouseStatistics.DEFAULT_BUFFER_SIZE;
 
-    private static final TextStatsSettings DEFAULT = TextStatsSettings.builder()
-            .font(Font.getDefault().getFamily())
-            .size(DEFAULT_SIZE)
-            .align(DEFAULT_ALIGN)
-            .isBold(DEFAULT_IS_BOLD)
-            .isItalic(DEFAULT_IS_ITALIC)
-            .color(DEFAULT_COLOR)
-            .backgroundColor(DEFAULT_BACKGROUND_COLOR)
-            .content(DEFAULT_CONTENT)
-            .statsBufferSize(DEFAULT_BUFFER_SIZE)
-            .build();
 
-    private @Nonnull String font;
-    private int size;
-    private @Nonnull String align;
-    private boolean isBold;
-    private boolean isItalic;
-    private @Nonnull String color;
-    private @Nonnull String backgroundColor;
-    private @Nonnull String content;
-    private int statsBufferSize;
+    // Builder default values are filled by Lombok automatically via the @Default annotation.
+    private static final TextStatsSettings DEFAULT = TextStatsSettings.builder().build();
+
+
+    private @Default @Nonnull String font = Font.getDefault().getFamily();
+    private @Default int size = DEFAULT_SIZE;
+    private @Default @Nonnull String align = DEFAULT_ALIGN;
+    private @Default boolean isBold = DEFAULT_IS_BOLD;
+    private @Default boolean isItalic = DEFAULT_IS_ITALIC;
+    private @Default @Nonnull String color = DEFAULT_COLOR;
+    private @Default @Nonnull String backgroundColor = DEFAULT_BACKGROUND_COLOR;
+    private @Default @Nonnull String content = DEFAULT_CONTENT;
+    private @Default int statsBufferSize = DEFAULT_STATS_BUFFER_SIZE;
 }
