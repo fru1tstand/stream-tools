@@ -3,23 +3,25 @@ package me.fru1t.streamtools.controller;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import me.fru1t.javafx.FXMLResource;
 import me.fru1t.streamtools.controller.settings.GraphStatsSettings;
 import me.fru1t.streamtools.javafx.WindowWithSettingsController;
 import me.fru1t.streamtools.util.KeyboardAndMouseStatistics;
+import sun.plugin.javascript.navig.Anchor;
 
 @FXMLResource("/FXML/GraphStats.fxml")
 public class GraphStatsController
         extends WindowWithSettingsController<GraphStatsSettings, GraphStatsSettingsController> {
+    private static final String PADDING_STYLE = "-fx-padding: %dpx %dpx %dpx %dpx;";
 
     private @FXML Canvas canvas;
     private GraphicsContext ctx;
     private final KeyboardAndMouseStatistics stats;
 
     // Settings
-    private long graphHistoryTimeMS;
-    private int pointSize;
+    private GraphStatsSettings settings;
 
     private int[] data;
     private int dataPointer;
@@ -27,9 +29,12 @@ public class GraphStatsController
     private long lastTime;
     private long msSinceLastPoint;
 
+    // Values set by settings or canvas size
     private transient double pixelsPerMillisecond;
     private transient double spaceBetweenPoints;
     private transient long msBetweenPoints;
+    private transient Color dotColor;
+    private transient Color lineColor;
 
     /**
      * Use {@link me.fru1t.javafx.Controller#create(Class)} or any #create derivative to
@@ -73,17 +78,49 @@ public class GraphStatsController
         }
 
         ctx.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        ctx.setFill(Color.BLACK);
+
+        boolean hasInitialPoint = false;
+        if (settings.isEnableLine()) {
+            ctx.beginPath();
+        }
+
         // Render, starting from tail to front
         for (int i = 0; i < data.length; i++) {
+            // Creates coordinates for right-to-left history, and bottom-to-top values)
             double y = canvas.getHeight() -
-                    ((canvas.getHeight() - pointSize) *
+                    ((canvas.getHeight() - settings.getDotSize()) *
                             (1.0 * data[(i + dataPointer) % data.length] / largestData))
-                    - pointSize;
-            double x = -(pixelsPerMillisecond * msSinceLastPoint) + i * spaceBetweenPoints
-                    + spaceBetweenPoints - pointSize;
+                    - settings.getDotSize() / 2;
+            double x = -(pixelsPerMillisecond * msSinceLastPoint)
+                    + i * spaceBetweenPoints
+                    + spaceBetweenPoints
+                    - settings.getDotSize() / 2;
 
-            ctx.setFill(Color.BLACK);
-            ctx.fillOval(x, y, pointSize, pointSize);
+            // Dots
+            if (settings.isEnableDots()) {
+                ctx.setFill(dotColor);
+                ctx.fillOval(x - settings.getDotSize() / 2,
+                        y - settings.getDotSize() / 2,
+                        settings.getDotSize(),
+                        settings.getDotSize());
+            }
+
+            // lines
+            if (settings.isEnableLine()) {
+                if (hasInitialPoint) {
+                    ctx.lineTo(x, y);
+                } else {
+                    ctx.moveTo(x, y);
+                    hasInitialPoint = true;
+                }
+            }
+        }
+
+        if (settings.isEnableLine()) {
+            ctx.setStroke(lineColor);
+            ctx.setLineWidth(settings.getLineWidth());
+            ctx.stroke();
         }
     }
 
@@ -91,19 +128,33 @@ public class GraphStatsController
     public void onSettingsChange(GraphStatsSettings settings) {
         stats.setBufferSize(settings.getStatsBufferSize());
 
-        graphHistoryTimeMS = settings.getGraphHistoryTimeMS();
-        pointSize = settings.getPointSize();
+        this.settings = settings.copy();
+        if (!settings.isEnableDots()) {
+            settings.setDotSize(0);
+        }
 
         data = new int[settings.getGraphPoints()];
         msBetweenPoints = settings.getGraphHistoryTimeMS() / settings.getGraphPoints();
+        dotColor = Color.web(settings.getDotColor());
+        lineColor = Color.web(settings.getLineColor());
 
         updateCanvasSize();
     }
 
     private void updateCanvasSize() {
-        canvas.setWidth(scene.getWidth());
-        canvas.setHeight(scene.getHeight());
-        spaceBetweenPoints = (canvas.getWidth() + pointSize) / data.length;
-        pixelsPerMillisecond = (canvas.getWidth() + pointSize) / graphHistoryTimeMS;
+        canvas.setWidth(scene.getWidth()
+                - settings.getPaddingLeft() - settings.getPaddingRight());
+        canvas.setHeight(scene.getHeight()
+                - settings.getPaddingTop() - settings.getPaddingBottom());
+
+        // Set padding
+        AnchorPane.setTopAnchor(canvas, (double) settings.getPaddingTop());
+        AnchorPane.setRightAnchor(canvas, (double) settings.getPaddingRight());
+        AnchorPane.setBottomAnchor(canvas, (double) settings.getPaddingTop());
+        AnchorPane.setLeftAnchor(canvas, (double) settings.getPaddingLeft());
+
+        spaceBetweenPoints = (canvas.getWidth() + settings.getDotSize()) / data.length;
+        pixelsPerMillisecond =
+                (canvas.getWidth() + settings.getDotSize()) / settings.getGraphHistoryTimeMS();
     }
 }
