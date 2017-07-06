@@ -9,12 +9,10 @@ import me.fru1t.javafx.FXMLResource;
 import me.fru1t.streamtools.controller.settings.GraphStatsSettings;
 import me.fru1t.streamtools.javafx.WindowWithSettingsController;
 import me.fru1t.streamtools.util.KeyboardAndMouseStatistics;
-import sun.plugin.javascript.navig.Anchor;
 
 @FXMLResource("/FXML/GraphStats.fxml")
 public class GraphStatsController
         extends WindowWithSettingsController<GraphStatsSettings, GraphStatsSettingsController> {
-    private static final String PADDING_STYLE = "-fx-padding: %dpx %dpx %dpx %dpx;";
 
     private @FXML Canvas canvas;
     private GraphicsContext ctx;
@@ -122,6 +120,12 @@ public class GraphStatsController
             ctx.setLineWidth(settings.getLineWidth());
             ctx.stroke();
         }
+    }
+
+    @Override
+    public void onShutdown() {
+        stats.shutdown();
+        super.onShutdown();
     }
 
     @Override
