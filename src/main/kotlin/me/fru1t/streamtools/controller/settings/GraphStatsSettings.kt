@@ -17,6 +17,7 @@ data class GraphStatsSettings(
     // The number of datapoints to display on the graph at any one time.
     var graphPoints: Int = 30,
 
+    var backgroundColor: String = FXUtils.colorToHex(Color.BLUE),
     var paddingTop: Int = 5,
     var paddingRight: Int = 5,
     var paddingBottom: Int = 5,
@@ -30,5 +31,9 @@ data class GraphStatsSettings(
     // ** Line
     var enableLine: Boolean = true,
     var lineWidth: Int = 2,
-    var lineColor: String = FXUtils.colorToHex(Color.YELLOW) // In hex string form.
+    var lineColor: String = FXUtils.colorToHex(Color.YELLOW), // In hex string form.
+
+    var enableBars: Boolean = true,
+    var barWidth: Int = 10,
+    var barColor: String = FXUtils.colorToHex(Color.WHEAT)
 ) : Settings<GraphStatsSettings>()

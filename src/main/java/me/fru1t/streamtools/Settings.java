@@ -43,7 +43,8 @@ public abstract class Settings<T> {
             LOGGER.log(Level.SEVERE, "Tried to fetch fields to create a copy of "
                     + getClass().getName() + " but couldn't: " + e.getMessage());
             throw new RuntimeException("Tried to fetch fields to create a copy of "
-                    + getClass().getName() + " but couldn't: " + e.getMessage());
+                    + getClass().getName() + " but couldn't: " + e.getMessage(),
+                    e);
         }
 
         // See if there exists a constructor with those parameters
@@ -58,7 +59,8 @@ public abstract class Settings<T> {
                     + "were declared.");
             throw new RuntimeException("Tried to find a constructor for " + getClass().getName()
                     + " but couldn't find one that had all non-static fields in the order they "
-                    + "were declared.");
+                    + "were declared.",
+                    e);
         }
 
         // Make sure it's visible to us
@@ -74,7 +76,8 @@ public abstract class Settings<T> {
             LOGGER.log(Level.SEVERE, "Tried to create a copy of " + getClass().getName()
                     + " but failed to instantiate a new copy: " + e.getMessage());
             throw new RuntimeException("Tried to create a copy of " + getClass().getName()
-                    + " but failed to instantiate a new copy: " + e.getMessage());
+                    + " but failed to instantiate a new copy: " + e.getMessage(),
+                    e);
         }
 
         return result;
@@ -102,7 +105,14 @@ public abstract class Settings<T> {
                 if (!Modifier.isPublic(field.getModifiers())) {
                     field.setAccessible(true);
                 }
-                field.set(this, field.get(settings));
+
+                Object newFieldValue = field.get(settings);
+                if (newFieldValue != null) {
+                    field.set(this, newFieldValue);
+                } else {
+                    LOGGER.log(Level.INFO, "Ignoring update on null field "
+                            + getClass().getName() + "#" + field.getName());
+                }
             }
         } catch (IllegalAccessException e) {
             LOGGER.log(Level.SEVERE, "Tried to update setting for " + getClass().getName()
