@@ -1,13 +1,273 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
-<AnchorPane prefHeight="160.0" prefWidth="218.0" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.fru1t.streamtools.controller.GraphStatsSettingsController">
-   <children>
-      <Label layoutX="14.0" layoutY="14.0" text="Graph Stats Settings" />
-      <Button fx:id="settingsCancelButton" layoutX="14.0" layoutY="121.0" mnemonicParsing="false" text="Button" visible="false" />
-      <Button fx:id="settingsApplyButton" layoutX="68.0" layoutY="121.0" mnemonicParsing="false" text="Button" visible="false" />
-      <Button fx:id="settingsSaveButton" layoutX="122.0" layoutY="121.0" mnemonicParsing="false" text="Button" visible="false" />
-   </children>
-</AnchorPane>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane prefHeight="360.0" prefWidth="469.0" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.fru1t.streamtools.controller.GraphStatsSettingsController">
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+            <tabs>
+                <Tab text="General">
+                    <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0">
+                            <children>
+                                <Label layoutX="14.0" layoutY="14.0" text="Stats Samples" />
+                                <Slider fx:id="statsSamplesSlider" layoutX="14.0" layoutY="31.0" max="1200.0" prefHeight="14.0" prefWidth="386.0" />
+                                <TextField fx:id="statsSamplesField" layoutX="406.0" layoutY="26.0" prefHeight="25.0" prefWidth="49.0" />
+                                <Label layoutX="14.0" layoutY="51.0" text="Graph History Window (ms)" />
+                                <Slider fx:id="historyWindowSlider" layoutX="14.0" layoutY="73.0" prefHeight="14.0" prefWidth="386.0" />
+                                <TextField fx:id="historyWindowField" layoutX="406.0" layoutY="68.0" prefHeight="25.0" prefWidth="49.0" />
+                                <Label layoutX="14.0" layoutY="93.0" text="Graph Points" />
+                                <Slider fx:id="pointsSlider" layoutX="14.0" layoutY="115.0" prefHeight="14.0" prefWidth="386.0" />
+                                <TextField fx:id="pointsField" layoutX="406.0" layoutY="110.0" prefHeight="25.0" prefWidth="49.0" />
+                                <Pane layoutX="296.0" layoutY="142.0" prefHeight="93.0" prefWidth="159.0">
+                                    <children>
+                                        <Label layoutX="57.0" layoutY="38.0" text="Padding" />
+                                        <TextField fx:id="paddingTop" layoutX="57.0" layoutY="1.0" prefHeight="25.0" prefWidth="45.0" />
+                                        <TextField fx:id="paddingRight" layoutX="113.0" layoutY="34.0" prefHeight="25.0" prefWidth="45.0" />
+                                        <TextField fx:id="paddingBottom" layoutX="56.0" layoutY="68.0" prefHeight="25.0" prefWidth="45.0" />
+                                        <TextField fx:id="paddingLeft" layoutY="34.0" prefHeight="25.0" prefWidth="45.0" />
+                                    </children>
+                                </Pane>
+                                <ColorPicker fx:id="backgroundColor" layoutX="14.0" layoutY="159.0" />
+                                <Label layoutX="14.0" layoutY="142.0" text="Background Color" />
+                                <Pane layoutX="152.0" layoutY="142.0" prefHeight="92.0" prefWidth="132.0">
+                                    <children>
+                                        <Label text="Graph Stretch Min Value" />
+                                        <TextField fx:id="minValue" layoutY="17.0" prefHeight="25.0" prefWidth="65.0" />
+                                        <Label layoutX="-1.0" layoutY="50.0" text="Graph Stretch Max Value" />
+                                        <TextField fx:id="maxValue" layoutY="67.0" prefHeight="25.0" prefWidth="65.0" />
+                                    </children>
+                                </Pane>
+                            </children>
+                        </AnchorPane>
+                    </content>
+                </Tab>
+                <Tab text="Visuals">
+                    <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0">
+                            <children>
+                                <Pane layoutX="13.0" layoutY="81.0" prefHeight="40.0" prefWidth="444.0">
+                                    <children>
+                                        <Label text="Dots">
+                                            <font>
+                                                <Font name="System Bold" size="12.0" />
+                                            </font>
+                                        </Label>
+                                        <CheckBox fx:id="dots" layoutY="17.0" mnemonicParsing="false" selected="true" text="Enable" />
+                                        <Label layoutX="109.0" layoutY="17.0" text="Size" />
+                                        <TextField fx:id="dotSize" layoutX="136.0" layoutY="13.0" prefHeight="25.0" prefWidth="55.0" />
+                                        <Label layoutX="196.0" layoutY="17.0" text="px" />
+                                        <Label layoutX="265.0" layoutY="17.0" text="Fill Color" />
+                                        <ColorPicker fx:id="dotColor" layoutX="319.0" layoutY="13.0" />
+                                    </children>
+                                </Pane>
+                                <Pane layoutX="13.0" layoutY="135.0" prefHeight="40.0" prefWidth="444.0">
+                                    <children>
+                                        <Label text="Line">
+                                            <font>
+                                                <Font name="System Bold" size="12.0" />
+                                            </font>
+                                        </Label>
+                                        <CheckBox fx:id="line" layoutY="17.0" mnemonicParsing="false" selected="true" text="Enable" />
+                                        <Label layoutX="78.0" layoutY="17.0" text="Thickness" />
+                                        <TextField fx:id="lineSize" layoutX="136.0" layoutY="13.0" prefHeight="25.0" prefWidth="55.0" />
+                                        <Label layoutX="196.0" layoutY="17.0" text="px" />
+                                        <Label layoutX="265.0" layoutY="17.0" text="Fill Color" />
+                                        <ColorPicker fx:id="lineColor" layoutX="319.0" layoutY="13.0" />
+                                    </children>
+                                </Pane>
+                                <Pane layoutX="13.0" layoutY="189.0" prefHeight="40.0" prefWidth="444.0">
+                                    <children>
+                                        <Label text="Bars">
+                                            <font>
+                                                <Font name="System Bold" size="12.0" />
+                                            </font>
+                                        </Label>
+                                        <CheckBox fx:id="bars" layoutY="17.0" mnemonicParsing="false" selected="true" text="Enable" />
+                                        <Label layoutX="97.0" layoutY="18.0" text="Width" />
+                                        <TextField fx:id="barSize" layoutX="136.0" layoutY="13.0" prefHeight="25.0" prefWidth="55.0" />
+                                        <Label layoutX="196.0" layoutY="17.0" text="px" />
+                                        <Label layoutX="265.0" layoutY="17.0" text="Fill Color" />
+                                        <ColorPicker fx:id="barColor" layoutX="319.0" layoutY="13.0" />
+                                    </children>
+                                </Pane>
+                                <Label layoutX="13.0" layoutY="14.0" text="Statistic to graph" />
+                                <ChoiceBox fx:id="statistic" layoutX="13.0" layoutY="31.0" prefHeight="25.0" prefWidth="220.0" />
+                            </children>
+                        </AnchorPane>
+                    </content>
+                </Tab>
+                <Tab text="Time Axis">
+                    <content>
+                        <AnchorPane>
+                            <children>
+                                <CheckBox fx:id="timeAxis" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" selected="true" text="Show" />
+                                <Pane layoutX="14.0" layoutY="41.0" prefHeight="44.0" prefWidth="441.0">
+                                    <children>
+                                        <Label text="Major Tick">
+                                            <font>
+                                                <Font name="System Bold" size="12.0" />
+                                            </font>
+                                        </Label>
+                                        <Label layoutY="21.0" text="Every" />
+                                        <TextField fx:id="timeAxisMajorEvery" layoutX="36.0" layoutY="17.0" prefHeight="25.0" prefWidth="69.0" />
+                                        <Label layoutX="111.0" layoutY="21.0" text="ms" />
+                                        <TextField fx:id="timeAxisMajorWidth" layoutX="203.0" layoutY="17.0" prefHeight="25.0" prefWidth="45.0" />
+                                        <Label layoutX="166.0" layoutY="21.0" text="Width" />
+                                        <Label layoutX="254.0" layoutY="21.0" text="px" />
+                                        <ColorPicker fx:id="timeAxisMajorColor" layoutX="316.0" layoutY="17.0" />
+                                    </children>
+                                </Pane>
+                                <Pane layoutX="14.0" layoutY="88.0" prefHeight="44.0" prefWidth="441.0">
+                                    <children>
+                                        <Label text="Minor Tick">
+                                            <font>
+                                                <Font name="System Bold" size="12.0" />
+                                            </font>
+                                        </Label>
+                                        <Label layoutY="21.0" text="Every" />
+                                        <TextField fx:id="timeAxisMinorEvery" layoutX="36.0" layoutY="17.0" prefHeight="25.0" prefWidth="69.0" />
+                                        <Label layoutX="111.0" layoutY="21.0" text="ms" />
+                                        <TextField fx:id="timeAxisMinorWidth" layoutX="203.0" layoutY="17.0" prefHeight="25.0" prefWidth="45.0" />
+                                        <Label layoutX="166.0" layoutY="21.0" text="Width" />
+                                        <Label layoutX="254.0" layoutY="21.0" text="px" />
+                                        <ColorPicker fx:id="timeAxisMinorColor" layoutX="316.0" layoutY="17.0" />
+                                    </children>
+                                </Pane>
+                                <Pane layoutX="14.0" layoutY="135.0" prefHeight="105.0" prefWidth="441.0">
+                                    <children>
+                                        <Label text="Text">
+                                            <font>
+                                                <Font name="System Bold" size="12.0" />
+                                            </font>
+                                        </Label>
+                                        <Label layoutY="21.0" text="Every" />
+                                        <TextField fx:id="timeAxisTextEvery" layoutX="36.0" layoutY="17.0" prefHeight="25.0" prefWidth="69.0" />
+                                        <Label layoutX="111.0" layoutY="21.0" text="ms" />
+                                        <Label layoutX="7.0" layoutY="50.0" text="Size" />
+                                        <ColorPicker fx:id="timeAxisTextColor" layoutX="203.0" layoutY="17.0" prefHeight="25.0" prefWidth="125.0" />
+                                        <ChoiceBox fx:id="timeAxisTextFontFamily" layoutX="203.0" layoutY="46.0" prefHeight="25.0" prefWidth="125.0" />
+                                        <Label layoutX="173.0" layoutY="50.0" text="Font" />
+                                        <Label layoutX="169.0" layoutY="21.0" text="Color" />
+                                        <TextField fx:id="timeAxisTextValue" layoutX="36.0" layoutY="75.0" prefHeight="25.0" prefWidth="69.0" />
+                                        <Label layoutX="-1.0" layoutY="79.0" text="Value" />
+                                        <ComboBox fx:id="timeAxisTextSize" editable="true" layoutX="36.0" layoutY="46.0" prefHeight="25.0" prefWidth="69.0" />
+                                        <Label layoutX="165.0" layoutY="79.0" text="Offset" />
+                                        <Label layoutX="203.0" layoutY="79.0" text="x:" />
+                                        <TextField fx:id="timeAxisTextXOffset" layoutX="213.0" layoutY="75.0" prefHeight="25.0" prefWidth="50.0" />
+                                        <Label layoutX="268.0" layoutY="79.0" text="y:" />
+                                        <TextField fx:id="timeAxisTextYOffset" layoutX="278.0" layoutY="75.0" prefHeight="25.0" prefWidth="50.0" />
+                                        <CheckBox fx:id="timeAxisTextBold" layoutX="364.0" layoutY="21.0" mnemonicParsing="false" text="Bold" />
+                                        <CheckBox fx:id="timeAxisTextItalic" layoutX="364.0" layoutY="50.0" mnemonicParsing="false" text="Italic" />
+                                    </children>
+                                </Pane>
+                            </children>
+                        </AnchorPane>
+                    </content>
+                </Tab>
+
+                <Tab text="Value Axis">
+                    <content>
+                        <AnchorPane>
+                            <children>
+                                <CheckBox fx:id="fixedValueAxis" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" selected="true" text="Show" />
+                                <Pane layoutX="14.0" layoutY="41.0" prefHeight="44.0" prefWidth="441.0">
+                                    <children>
+                                        <Label text="Major Tick">
+                                            <font>
+                                                <Font name="System Bold" size="12.0" />
+                                            </font>
+                                        </Label>
+                                        <Label layoutY="21.0" text="Every" />
+                                        <TextField fx:id="fixedValueAxisMajorEvery" layoutX="36.0" layoutY="17.0" prefHeight="25.0" prefWidth="69.0" />
+                                        <Label layoutX="111.0" layoutY="21.0" text="ms" />
+                                        <TextField fx:id="fixedValueAxisMajorWidth" layoutX="203.0" layoutY="17.0" prefHeight="25.0" prefWidth="45.0" />
+                                        <Label layoutX="166.0" layoutY="21.0" text="Width" />
+                                        <Label layoutX="254.0" layoutY="21.0" text="px" />
+                                        <ColorPicker fx:id="fixedValueAxisMajorColor" layoutX="316.0" layoutY="17.0" />
+                                    </children>
+                                </Pane>
+                                <Pane layoutX="14.0" layoutY="88.0" prefHeight="44.0" prefWidth="441.0">
+                                    <children>
+                                        <Label text="Minor Tick">
+                                            <font>
+                                                <Font name="System Bold" size="12.0" />
+                                            </font>
+                                        </Label>
+                                        <Label layoutY="21.0" text="Every" />
+                                        <TextField fx:id="fixedValueAxisMinorEvery" layoutX="36.0" layoutY="17.0" prefHeight="25.0" prefWidth="69.0" />
+                                        <Label layoutX="111.0" layoutY="21.0" text="ms" />
+                                        <TextField fx:id="fixedValueAxisMinorWidth" layoutX="203.0" layoutY="17.0" prefHeight="25.0" prefWidth="45.0" />
+                                        <Label layoutX="166.0" layoutY="21.0" text="Width" />
+                                        <Label layoutX="254.0" layoutY="21.0" text="px" />
+                                        <ColorPicker fx:id="fixedValueAxisMinorColor" layoutX="316.0" layoutY="17.0" />
+                                    </children>
+                                </Pane>
+                                <Pane layoutX="14.0" layoutY="135.0" prefHeight="105.0" prefWidth="441.0">
+                                    <children>
+                                        <Label text="Text">
+                                            <font>
+                                                <Font name="System Bold" size="12.0" />
+                                            </font>
+                                        </Label>
+                                        <Label layoutY="21.0" text="Every" />
+                                        <TextField fx:id="fixedValueAxisTextEvery" layoutX="36.0" layoutY="17.0" prefHeight="25.0" prefWidth="69.0" />
+                                        <Label layoutX="111.0" layoutY="21.0" text="ms" />
+                                        <Label layoutX="7.0" layoutY="50.0" text="Size" />
+                                        <ColorPicker fx:id="fixedValueAxisTextColor" layoutX="203.0" layoutY="17.0" prefHeight="25.0" prefWidth="125.0" />
+                                        <ChoiceBox fx:id="fixedValueAxisTextFontFamily" layoutX="203.0" layoutY="46.0" prefHeight="25.0" prefWidth="125.0" />
+                                        <Label layoutX="173.0" layoutY="50.0" text="Font" />
+                                        <Label layoutX="169.0" layoutY="21.0" text="Color" />
+                                        <TextField fx:id="fixedValueAxisTextValue" layoutX="36.0" layoutY="75.0" prefHeight="25.0" prefWidth="69.0" />
+                                        <Label layoutX="-1.0" layoutY="79.0" text="Value" />
+                                        <ComboBox fx:id="fixedValueAxisTextSize" editable="true" layoutX="36.0" layoutY="46.0" prefHeight="25.0" prefWidth="69.0" />
+                                        <Label layoutX="165.0" layoutY="79.0" text="Offset" />
+                                        <Label layoutX="203.0" layoutY="79.0" text="x:" />
+                                        <TextField fx:id="fixedValueAxisTextXOffset" layoutX="213.0" layoutY="75.0" prefHeight="25.0" prefWidth="50.0" />
+                                        <Label layoutX="268.0" layoutY="79.0" text="y:" />
+                                        <TextField fx:id="fixedValueAxisTextYOffset" layoutX="278.0" layoutY="75.0" prefHeight="25.0" prefWidth="50.0" />
+                                        <CheckBox fx:id="fixedValueAxisTextBold" layoutX="364.0" layoutY="21.0" mnemonicParsing="false" text="Bold" />
+                                        <CheckBox fx:id="fixedValueAxisTextItalic" layoutX="364.0" layoutY="50.0" mnemonicParsing="false" text="Italic" />
+                                    </children>
+                                </Pane>
+                            </children>
+                        </AnchorPane>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+    <top>
+        <AnchorPane prefHeight="44.0" BorderPane.alignment="CENTER">
+            <children>
+                <Label layoutX="14" layoutY="14" text="Graph Stats Settings">
+                    <font>
+                        <Font name="System Bold" size="12.0" />
+                    </font>
+                </Label>
+            </children>
+        </AnchorPane>
+    </top>
+    <bottom>
+        <AnchorPane prefHeight="44.0" prefWidth="469.0" BorderPane.alignment="CENTER">
+            <children>
+                <Button fx:id="settingsCancelButton" layoutX="14.0" layoutY="10.0" mnemonicParsing="false" text="Cancel" />
+                <Button fx:id="settingsApplyButton" layoutX="361.0" layoutY="10.0" mnemonicParsing="false" text="Apply" />
+                <Button fx:id="settingsSaveButton" layoutX="416.0" layoutY="10.0" mnemonicParsing="false" text="Save" />
+            </children>
+        </AnchorPane>
+    </bottom>
+</BorderPane>
