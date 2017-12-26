@@ -1,14 +1,13 @@
 package me.fru1t.streamtools.javafx;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
 import me.fru1t.javafx.Controller;
 import me.fru1t.streamtools.Settings;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.HashSet;
 
@@ -51,65 +50,12 @@ public abstract class SettingsController<T extends Settings<T>> extends Controll
         @SuppressWarnings("unchecked")
         Class<T> settingsClass = (Class<T>) settingsControllerClass.getActualTypeArguments()[0];
 
-        // Get the @DefaultSettings annotation for T
-        DefaultSettings defaultSettingsAnnotation = null;
-        for (Annotation annotation : settingsClass.getAnnotations()) {
-            if (annotation instanceof DefaultSettings) {
-                defaultSettingsAnnotation = (DefaultSettings) annotation;
-                break;
-            }
-        }
-        if (defaultSettingsAnnotation == null) {
-            throw new RuntimeException("The settings class " + settingsClass.getName()
-                    + " must be annotated with @DefaultSettings.");
-        }
-
-        // Get the field that the @DefaultSettings annotation points to.
-        Field defaultSettingsField;
         try {
-            defaultSettingsField =
-                    settingsClass.getDeclaredField(defaultSettingsAnnotation.value());
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException("The settings class '" + settingsClass.getName()
-                    + "' denoted the field '" + defaultSettingsAnnotation.value()
-                    + "' as the default settings object, but the field could not be found: "
-                    + e.getMessage());
+            Constructor<T> settingsConstructor = settingsClass.getConstructor();
+            currentSettings = settingsConstructor.newInstance();
+        } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            throw new RuntimeException(e);
         }
-
-        // Make sure the field we retrieved is a static final
-        int modifiers = defaultSettingsField.getModifiers();
-        if (!Modifier.isStatic(modifiers) || !Modifier.isFinal(modifiers)) {
-            throw new RuntimeException("The default settings field '"
-                    + defaultSettingsAnnotation.value() + "' in '" + settingsClass.getName()
-                    + "' must be marked static and final (eg. a class constant).");
-        }
-
-        // If the field is not public, mark it accessible to us.
-        if (!Modifier.isPublic(modifiers)) {
-            defaultSettingsField.setAccessible(true);
-        }
-
-        // Fetch the actual value of the field (this value should be the default settings object)
-        Object defaultSettingsObject;
-        try {
-            defaultSettingsObject = defaultSettingsField.get(null);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to fetch the field '"
-                    + defaultSettingsAnnotation.value() + "' from '" + settingsClass.getName()
-                    + "' due to: " + e.getMessage());
-        }
-
-        // Verify the value we fetched is of type T (the settings class)
-        if (!settingsClass.isAssignableFrom(defaultSettingsObject.getClass())) {
-            throw new RuntimeException("The default settings object retrieved from '"
-                    + defaultSettingsAnnotation.value() + "' in class '" + settingsClass.getName()
-                    + "' is not the same type as the settings class. It's a '"
-                    + defaultSettingsObject.getClass() + "' instead.");
-        }
-
-        // Finally, we can assign it to our current settings object as a copy.
-        //noinspection unchecked
-        currentSettings = ((T) defaultSettingsObject).copy();
     }
 
     /**
@@ -122,20 +68,20 @@ public abstract class SettingsController<T extends Settings<T>> extends Controll
 
         // Check that the settings panel has both a cancel and save button action.
         if (settingsCancelButton == null) {
-            throw new RuntimeException(getFXMLResourcePath() + " requires a button with an fx:id "
+            throw new RuntimeException(getFxmlResourcePath() + " requires a button with an fx:id "
                     + "of \"settingsCancelButton\"");
         }
         if (settingsSaveButton == null) {
-            throw new RuntimeException(getFXMLResourcePath() + " requires a button with an fx:id "
+            throw new RuntimeException(getFxmlResourcePath() + " requires a button with an fx:id "
                     + "of \"settingsSaveButton\"");
         }
         if (settingsApplyButton == null) {
-            throw new RuntimeException(getFXMLResourcePath() + " requires a button with an fx:id "
+            throw new RuntimeException(getFxmlResourcePath() + " requires a button with an fx:id "
                     + "of \"settingsApplyButton\"");
         }
 
         // Wire cancel and save buttons
-        settingsCancelButton.setOnAction(event -> SettingsController.this.stage.hide());
+        settingsCancelButton.setOnAction(event -> SettingsController.this.getStage().hide());
         settingsApplyButton.setOnAction(event -> {
             commitSettings();
             for (EventHandler<T> handler : eventHandlers) {
@@ -147,11 +93,11 @@ public abstract class SettingsController<T extends Settings<T>> extends Controll
             for (EventHandler<T> handler : eventHandlers) {
                 handler.onSettingsChange(currentSettings);
             }
-            SettingsController.this.stage.hide();
+            SettingsController.this.getStage().hide();
         });
 
         // All controls should lose focus when the root is clicked
-        scene.getRoot().setOnMouseClicked(event -> scene.getRoot().requestFocus());
+        getScene().getRoot().setOnMouseClicked(event -> getScene().getRoot().requestFocus());
     }
 
     @Override

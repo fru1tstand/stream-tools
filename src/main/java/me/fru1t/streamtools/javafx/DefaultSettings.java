@@ -14,8 +14,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Documented
 public @interface DefaultSettings {
-    /**
-     * The name of the field containing the default settings object.
-     */
+    /** The name of the field containing the default settings object. */
     String value();
 }

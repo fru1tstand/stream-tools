@@ -72,14 +72,14 @@ public class TextStatsSettingsController extends SettingsController<TextStatsSet
                     return Integer.parseInt(string);
                 } catch (Exception e) {
                     LOGGER.log(Level.WARNING, e.getMessage());
-                    return TextStatsSettings.DEFAULT_SIZE;
+                    return TextStatsSettings.Companion.getDEFAULT_SIZE();
                 }
             }
         });
 
         // Combo box quirkiness
         size.getEditor().focusedProperty().addListener((observable, wasFocused, isNowFocused) -> {
-            Integer newValue = TextStatsSettings.DEFAULT_SIZE;
+            Integer newValue = TextStatsSettings.Companion.getDEFAULT_SIZE();
             try {
                 newValue = Integer.parseInt(size.getEditor().getText());
             } catch (NumberFormatException e) {
@@ -103,11 +103,11 @@ public class TextStatsSettingsController extends SettingsController<TextStatsSet
         currentSettings.setBackgroundColor(FXUtils.colorToHex(backgroundColor.getValue()));
         currentSettings.setContent(content.getText());
 
-        currentSettings.setAlign(TextStatsSettings.ALIGN_LEFT);
+        currentSettings.setAlign(TextStatsSettings.Companion.getALIGN_LEFT());
         if (centerJustify.isSelected()) {
-            currentSettings.setAlign(TextStatsSettings.ALIGN_CENTER);
+            currentSettings.setAlign(TextStatsSettings.Companion.getALIGN_CENTER());
         } else if (rightJustify.isSelected()) {
-            currentSettings.setAlign(TextStatsSettings.ALIGN_RIGHT);
+            currentSettings.setAlign(TextStatsSettings.Companion.getALIGN_RIGHT());
         }
     }
 
@@ -124,16 +124,12 @@ public class TextStatsSettingsController extends SettingsController<TextStatsSet
         leftJustify.setSelected(false);
         centerJustify.setSelected(false);
         rightJustify.setSelected(false);
-        switch (currentSettings.getAlign()) {
-            case TextStatsSettings.ALIGN_CENTER:
-                centerJustify.setSelected(true);
-                break;
-            case TextStatsSettings.ALIGN_LEFT:
-                leftJustify.setSelected(true);
-                break;
-            case TextStatsSettings.ALIGN_RIGHT:
-                rightJustify.setSelected(true);
-                break;
+        if (currentSettings.getAlign().equals(TextStatsSettings.Companion.getALIGN_CENTER())) {
+            centerJustify.setSelected(true);
+        } else if (currentSettings.getAlign().equals(TextStatsSettings.Companion.getALIGN_LEFT())) {
+            leftJustify.setSelected(true);
+        } else {
+            rightJustify.setSelected(true);
         }
     }
 }

@@ -35,7 +35,7 @@ public class GraphStatsController
     private transient Color lineColor;
 
     /**
-     * Use {@link me.fru1t.javafx.Controller#create(Class)} or any #create derivative to
+     * Use {@link me.fru1t.javafx.Controller.Companion#create(Class)} or any #create derivative to
      * instantiate.
      */
     public GraphStatsController() {
@@ -48,8 +48,8 @@ public class GraphStatsController
         ctx = canvas.getGraphicsContext2D();
 
         // Set up canvas resizing
-        scene.widthProperty().addListener((observable, oldValue, newValue) -> updateCanvasSize());
-        scene.heightProperty().addListener((observable, oldValue, newValue) -> updateCanvasSize());
+        getScene().widthProperty().addListener((observable, oldValue, newValue) -> updateCanvasSize());
+        getScene().heightProperty().addListener((observable, oldValue, newValue) -> updateCanvasSize());
     }
 
     @Override
@@ -79,7 +79,7 @@ public class GraphStatsController
         ctx.setFill(Color.BLACK);
 
         boolean hasInitialPoint = false;
-        if (settings.isEnableLine()) {
+        if (settings.getEnableLine()) {
             ctx.beginPath();
         }
 
@@ -96,7 +96,7 @@ public class GraphStatsController
                     - settings.getDotSize() / 2;
 
             // Dots
-            if (settings.isEnableDots()) {
+            if (settings.getEnableDots()) {
                 ctx.setFill(dotColor);
                 ctx.fillOval(x - settings.getDotSize() / 2,
                         y - settings.getDotSize() / 2,
@@ -105,7 +105,7 @@ public class GraphStatsController
             }
 
             // lines
-            if (settings.isEnableLine()) {
+            if (settings.getEnableLine()) {
                 if (hasInitialPoint) {
                     ctx.lineTo(x, y);
                 } else {
@@ -115,7 +115,7 @@ public class GraphStatsController
             }
         }
 
-        if (settings.isEnableLine()) {
+        if (settings.getEnableLine()) {
             ctx.setStroke(lineColor);
             ctx.setLineWidth(settings.getLineWidth());
             ctx.stroke();
@@ -133,7 +133,7 @@ public class GraphStatsController
         stats.setBufferSize(settings.getStatsBufferSize());
 
         this.settings = settings.copy();
-        if (!settings.isEnableDots()) {
+        if (!settings.getEnableDots()) {
             settings.setDotSize(0);
         }
 
@@ -146,9 +146,9 @@ public class GraphStatsController
     }
 
     private void updateCanvasSize() {
-        canvas.setWidth(scene.getWidth()
+        canvas.setWidth(getScene().getWidth()
                 - settings.getPaddingLeft() - settings.getPaddingRight());
-        canvas.setHeight(scene.getHeight()
+        canvas.setHeight(getScene().getHeight()
                 - settings.getPaddingTop() - settings.getPaddingBottom());
 
         // Set padding

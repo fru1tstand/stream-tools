@@ -5,7 +5,7 @@ import me.fru1t.streamtools.controller.settings.GraphStatsSettings;
 import me.fru1t.streamtools.javafx.SettingsController;
 
 /**
- * Controller for the GraphStatsSettings FXML resource that defines settings for
+ * Controller for the me.fru1t.streamtools.controller.settings.GraphStatsSettings FXML resource that defines settings for
  * {@link GraphStatsController}
  */
 @FXMLResource("/FXML/GraphStatsSettings.fxml")

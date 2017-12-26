@@ -31,7 +31,7 @@ public abstract class WindowWithSettingsController<S extends Settings<S>, T exte
         Class<T> settingsControllerClass = (Class<T>)
                 windowWithSettingsControllerClass.getActualTypeArguments()[1];
 
-        settingsController = Controller.createWithNewStage(settingsControllerClass);
+        settingsController = Controller.Companion.createWithNewStage(settingsControllerClass);
         settingsController.addEventHandler(this);
     }
 

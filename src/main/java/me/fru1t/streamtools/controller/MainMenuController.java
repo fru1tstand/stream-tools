@@ -275,7 +275,7 @@ public class MainMenuController extends Controller {
         stage.setOnCloseRequest(event -> windowListView.refresh());
 
         // Set up controller
-        T controller = Controller.create(windowWithSettingsClass, stage);
+        T controller = Controller.Companion.create(windowWithSettingsClass, stage);
         controller.getStage().setTitle(windowTitle);
         controller.show();
         controller.getSettingsController().show();
@@ -324,7 +324,7 @@ public class MainMenuController extends Controller {
             Window[] windows = GSON.fromJson(contents, Window[].class);
             for (Window window : windows) {
                 @SuppressWarnings("unchecked")
-                WindowWithSettingsController<?, ?> controller = Controller.createWithNewStage(
+                WindowWithSettingsController<?, ?> controller = Controller.Companion.createWithNewStage(
                         (Class<WindowWithSettingsController<?, ?>>)
                                 Class.forName(window.controllerClass));
 

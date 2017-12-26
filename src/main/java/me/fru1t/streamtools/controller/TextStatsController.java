@@ -35,7 +35,7 @@ public class TextStatsController
     private final KeyboardAndMouseStatistics stats;
 
     /**
-     * Use {@link me.fru1t.javafx.Controller#create(Class)} instead.
+     * Use {@link me.fru1t.javafx.Controller.Companion#create(Class)} instead.
      */
     public TextStatsController() {
         stats = new KeyboardAndMouseStatistics();
@@ -46,10 +46,10 @@ public class TextStatsController
         stats.tick();
         KeyboardAndMouseStatistics.CurrentData data = stats.getCurrentData();
         textStatsLabel.setText(content
-                .replace(ACTIONS_PER_MINUTE_PLACEHOLDER, data.keyboardAPM + "")
-                .replace(PIXELS_PER_MINUTE_PLACEHOLDER, data.mousePPM + "")
-                .replace(TOTAL_ACTIONS_PLACEHOLDER, data.totalActions + "")
-                .replace(TOTAL_PIXELS_PLACEHOLDER, data.totalPixels + ""));
+                .replace(ACTIONS_PER_MINUTE_PLACEHOLDER, data.getKeyboardAPM() + "")
+                .replace(PIXELS_PER_MINUTE_PLACEHOLDER, data.getMousePPM() + "")
+                .replace(TOTAL_ACTIONS_PLACEHOLDER, data.getTotalActions() + "")
+                .replace(TOTAL_PIXELS_PLACEHOLDER, data.getTotalPixels() + ""));
     }
 
     @Override
@@ -74,19 +74,15 @@ public class TextStatsController
                 (settings.isItalic() ? "italic" : "normal"),
                 settings.getColor()));
 
-        switch (settings.getAlign()) {
-            case TextStatsSettings.ALIGN_CENTER:
-                GridPane.setHalignment(textStatsLabel, HPos.CENTER);
-                break;
-            case TextStatsSettings.ALIGN_LEFT:
-                GridPane.setHalignment(textStatsLabel, HPos.LEFT);
-                break;
-            case TextStatsSettings.ALIGN_RIGHT:
-                GridPane.setHalignment(textStatsLabel, HPos.RIGHT);
-                break;
+        if (settings.getAlign().equals(TextStatsSettings.Companion.getALIGN_CENTER())) {
+            GridPane.setHalignment(textStatsLabel, HPos.CENTER);
+        } else if (settings.getAlign().equals(TextStatsSettings.Companion.getALIGN_LEFT())) {
+            GridPane.setHalignment(textStatsLabel, HPos.LEFT);
+        } else {
+            GridPane.setHalignment(textStatsLabel, HPos.RIGHT);
         }
 
-        scene.getRoot().setStyle(String.format(ROOT_STYLE, settings.getBackgroundColor()));
+        getScene().getRoot().setStyle(String.format(ROOT_STYLE, settings.getBackgroundColor()));
         content = settings.getContent();
         stats.setBufferSize(settings.getStatsBufferSize());
     }
