@@ -5,6 +5,9 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import me.fru1t.javafx.FXMLResource;
 import me.fru1t.streamtools.controller.settings.GraphStatsSettings;
 import me.fru1t.streamtools.javafx.WindowWithSettingsController;
@@ -24,7 +27,7 @@ public class GraphStatsController
     // Settings
     private GraphStatsSettings settings;
 
-    private int[] data;
+    private long[] data;
     private int dataPointer;
 
     private long lastTime;
@@ -34,9 +37,10 @@ public class GraphStatsController
     private transient double pixelsPerMillisecond;
     private transient double spaceBetweenPoints;
     private transient long msBetweenPoints;
-    private transient Color dotColor;
-    private transient Color lineColor;
-    private transient Color barColor;
+
+    private transient double timeAxisPxBetweenMajor;
+    private transient double timeAxisPxBetweenMinor;
+    private transient double timeAxisPxBetweenText;
 
     /**
      * Use {@link me.fru1t.javafx.Controller.Companion#create(Class)} or any #create derivative to
@@ -74,8 +78,12 @@ public class GraphStatsController
         }
 
         // Find largest value
-        int largestData = 1;
-        for (int d : data) {
+        long largestData = settings.getMinValue();
+        for (long d : data) {
+            if (d > settings.getMaxValue()) {
+                largestData = settings.getMaxValue();
+                break;
+            }
             if (d > largestData) {
                 largestData = d;
             }
@@ -83,6 +91,127 @@ public class GraphStatsController
 
         ctx.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         ctx.setFill(Color.BLACK);
+
+        // Time Axis
+        if (settings.getTimeAxis().getEnabled()) {
+            double currentPosition = canvas.getWidth();
+
+            // Major
+            if (timeAxisPxBetweenMajor > 1) {
+                ctx.setFill(settings.getTimeAxis().getMajorColor().getColor());
+                if (!settings.getTimeAxis().getFirstMajorIncluded()) {
+                    currentPosition -= timeAxisPxBetweenMajor;
+                }
+                while (currentPosition > 0) {
+                    ctx.fillRect(currentPosition,
+                            0,
+                            settings.getTimeAxis().getMajorWidth(),
+                            canvas.getHeight());
+                    currentPosition -= timeAxisPxBetweenMajor;
+                }
+            }
+
+            if (timeAxisPxBetweenMinor > 0) {
+                currentPosition = canvas.getWidth();
+                ctx.setFill(settings.getTimeAxis().getMinorColor().getColor());
+                if (!settings.getTimeAxis().getFirstMajorIncluded()) {
+                    currentPosition -= timeAxisPxBetweenMinor;
+                }
+                while (currentPosition > 0) {
+                    ctx.fillRect(currentPosition,
+                            0,
+                            settings.getTimeAxis().getMinorWidth(),
+                            canvas.getHeight());
+                    currentPosition -= timeAxisPxBetweenMinor;
+                }
+            }
+
+            if (timeAxisPxBetweenText > 0) {
+                currentPosition = canvas.getWidth();
+                long currentTime = 0;
+                ctx.setFont(Font.font(
+                        settings.getTimeAxis().getTextFontFamily(),
+                        (settings.getTimeAxis().getTextBold() ? FontWeight.BOLD : FontWeight.NORMAL),
+                        (settings.getTimeAxis().getTextItalic()
+                                ? FontPosture.ITALIC : FontPosture.REGULAR),
+                        settings.getTimeAxis().getTextSize()));
+                ctx.setFill(settings.getTimeAxis().getTextColor().getColor());
+                if (!settings.getTimeAxis().getFirstTextIncluded()) {
+                    currentTime += settings.getTimeAxis().getTextEvery();
+                    currentPosition -= timeAxisPxBetweenText;
+                }
+                while (currentPosition > 0) {
+                    ctx.fillText(parseTimeText(currentTime, settings.getTimeAxis().getTextValue()),
+                            currentPosition + settings.getTimeAxis().getTextXOffset(),
+                            canvas.getHeight() - settings.getTimeAxis().getTextYOffset());
+                    currentTime += settings.getTimeAxis().getTextEvery();
+                    currentPosition -= timeAxisPxBetweenText;
+                }
+            }
+        }
+
+        // Fixed value axis
+        if (settings.getFixedValueAxis().getEnabled()) {
+            double currentPosition = canvas.getHeight();
+
+            // Major
+            if (settings.getFixedValueAxis().getMajorEvery() > 1) {
+                ctx.setFill(settings.getFixedValueAxis().getMajorColor().getColor());
+                double pxPerLine = canvas.getHeight()
+                        / (1.0 * largestData / settings.getFixedValueAxis().getMajorEvery());
+                if (!settings.getFixedValueAxis().getFirstMajorIncluded()) {
+                    currentPosition -= pxPerLine;
+                }
+                while (currentPosition > 0) {
+                    ctx.fillRect(0,
+                            currentPosition,
+                            canvas.getWidth(),
+                            settings.getFixedValueAxis().getMajorWidth());
+                    currentPosition -= pxPerLine;
+                }
+            }
+
+            // Minor
+            // TODO: Fix minor axis
+            if (settings.getFixedValueAxis().getMinorEvery() > 1) {
+                ctx.setFill(settings.getFixedValueAxis().getMinorColor().getColor());
+                currentPosition = canvas.getHeight();
+                double pxPerLine = canvas.getHeight()
+                        / (1.0 * largestData / settings.getFixedValueAxis().getMinorEvery());
+                if (!settings.getFixedValueAxis().getFirstMinorIncluded()) {
+                    currentPosition -= pxPerLine;
+                }
+                while (currentPosition > 0) {
+                    ctx.fillRect(0,
+                            currentPosition,
+                            canvas.getWidth(),
+                            settings.getFixedValueAxis().getMinorWidth());
+                    currentPosition -= pxPerLine;
+                }
+            }
+
+            // Text
+            if (settings.getFixedValueAxis().getTextEvery() > 1) {
+                ctx.setFill(settings.getFixedValueAxis().getTextColor().getColor());
+                currentPosition = canvas.getHeight();
+                double pxPerLine = canvas.getHeight()
+                        / (1.0 * largestData / settings.getFixedValueAxis().getTextEvery());
+                long currentValue = 0;
+                if (!settings.getFixedValueAxis().getFirstTextIncluded()) {
+                    currentPosition -= pxPerLine;
+                    currentValue += settings.getFixedValueAxis().getTextEvery();
+                }
+                while (currentPosition > 0) {
+                    ctx.fillText(
+                            parseValueText(
+                                    currentValue, settings.getFixedValueAxis().getTextValue()),
+                            settings.getFixedValueAxis().getTextXOffset(),
+                            currentPosition + settings.getFixedValueAxis().getTextYOffset());
+                    currentValue += settings.getFixedValueAxis().getTextEvery();
+                    currentPosition -= pxPerLine;
+                }
+            }
+        }
 
         boolean hasInitialPoint = false;
         if (settings.getEnableLine()) {
@@ -103,7 +232,7 @@ public class GraphStatsController
 
             // Dots
             if (settings.getEnableDots()) {
-                ctx.setFill(dotColor);
+                ctx.setFill(settings.getDotColor().getColor());
                 ctx.fillOval(x - settings.getDotSize() / 2,
                         y - settings.getDotSize() / 2,
                         settings.getDotSize(),
@@ -122,7 +251,7 @@ public class GraphStatsController
 
             // Bars
             if (settings.getEnableBars()) {
-                ctx.setFill(barColor);
+                ctx.setFill(settings.getBarColor().getColor());
                 ctx.fillRect(
                         x - settings.getBarWidth() / 2,
                         y,
@@ -132,7 +261,7 @@ public class GraphStatsController
         }
 
         if (settings.getEnableLine()) {
-            ctx.setStroke(lineColor);
+            ctx.setStroke(settings.getLineColor().getColor());
             ctx.setLineWidth(settings.getLineWidth());
             ctx.stroke();
         }
@@ -153,13 +282,11 @@ public class GraphStatsController
             settings.setDotSize(0);
         }
 
-        data = new int[settings.getGraphPoints()];
+        data = new long[settings.getGraphPoints()];
         msBetweenPoints = settings.getGraphHistoryTimeMS() / settings.getGraphPoints();
-        dotColor = Color.web(settings.getDotColor());
-        lineColor = Color.web(settings.getLineColor());
-        barColor = Color.web(settings.getBarColor());
 
-        getScene().getRoot().setStyle(String.format(ROOT_STYLE, settings.getBackgroundColor()));
+        getScene().getRoot().setStyle(
+            String.format(ROOT_STYLE, settings.getBackgroundColor().getColorHex()));
 
         updateCanvasSize();
     }
@@ -179,5 +306,34 @@ public class GraphStatsController
         spaceBetweenPoints = (canvas.getWidth() + settings.getDotSize()) / data.length;
         pixelsPerMillisecond =
                 (canvas.getWidth() + settings.getDotSize()) / settings.getGraphHistoryTimeMS();
+
+        timeAxisPxBetweenMinor = 0;
+        if (settings.getTimeAxis().getMinorEvery() > 1) {
+            timeAxisPxBetweenMinor = canvas.getWidth()
+                    / (1.0
+                    * settings.getGraphHistoryTimeMS() / settings.getTimeAxis().getMinorEvery());
+        }
+        timeAxisPxBetweenMajor = 0;
+        if (settings.getTimeAxis().getMajorEvery() > 1) {
+            timeAxisPxBetweenMajor = canvas.getWidth()
+                    / (1.0
+                    * settings.getGraphHistoryTimeMS() / settings.getTimeAxis().getMajorEvery());
+        }
+        timeAxisPxBetweenText = 0;
+        if (settings.getTimeAxis().getTextEvery() > 1) {
+            timeAxisPxBetweenText = canvas.getWidth()
+                    / (1.0
+                    * settings.getGraphHistoryTimeMS() / settings.getTimeAxis().getTextEvery());
+        }
+    }
+
+    private String parseTimeText(long ms, String value) {
+        return value
+                .replace(GraphStatsSettings.Companion.getTIME_AXIS_VALUE_S(), Math.round(ms / 1000.0) + "")
+                .replace(GraphStatsSettings.Companion.getTIME_AXIS_VALUE_MS(), ms + "");
+    }
+
+    private String parseValueText(long value, String string) {
+        return string.replace(GraphStatsSettings.Companion.getVALUE_AXIS_VALUE(), value + "");
     }
 }
