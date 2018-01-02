@@ -5,7 +5,7 @@ import javafx.fxml.FXML
 import javafx.scene.control.Button
 import javax.annotation.OverridingMethodsMustInvokeSuper
 import me.fru1t.javafx.Controller
-import me.fru1t.streamtools.Settings
+import me.fru1t.streamtools.controller.Settings
 
 import java.lang.reflect.ParameterizedType
 import java.util.HashSet

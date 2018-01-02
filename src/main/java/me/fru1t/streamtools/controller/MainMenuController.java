@@ -16,8 +16,7 @@ import javafx.stage.Stage;
 import me.fru1t.javafx.Controller;
 import me.fru1t.javafx.FxmlResource;
 import me.fru1t.javafx.TextInputDialogUtils;
-import me.fru1t.streamtools.Settings;
-import me.fru1t.streamtools.Window;
+import me.fru1t.streamtools.controller.mainmenu.Window;
 import me.fru1t.streamtools.javafx.WindowWithSettingsController;
 import org.apache.commons.lang3.StringUtils;
 
@@ -165,7 +164,7 @@ public class MainMenuController extends Controller {
             return;
         }
 
-        String windowTitle = TextInputDialogUtils.createShowAndWait(
+        String windowTitle = TextInputDialogUtils.INSTANCE.createShowAndWait(
                 RENAME_DIALOG_TITLE, null, RENAME_DIALOG_CONTENT_TEXT);
         if (windowTitle == null) {
             // User cancelled the dialog, don't rename
@@ -262,7 +261,7 @@ public class MainMenuController extends Controller {
     private <T extends WindowWithSettingsController<?, ?>> void addWindow(
             Class<T> windowWithSettingsClass) {
         // Ask for the window name
-        String windowTitle = TextInputDialogUtils.createShowAndWait(
+        String windowTitle = TextInputDialogUtils.INSTANCE.createShowAndWait(
                 ASK_FOR_NAME_DIALOG_TITLE, null, ASK_FOR_NAME_DIALOG_CONTENT_TEXT);
         if (windowTitle == null) {
             return;
@@ -286,16 +285,16 @@ public class MainMenuController extends Controller {
         ArrayList<Window> result = new ArrayList<>();
         for (WindowWithSettingsController<?, ?> controller : windowList) {
             Window window = new Window();
-            window.controllerClass = controller.getClass().getName();
-            window.settingsJson =
-                    GSON.toJson(controller.getSettingsController().getCurrentSettings());
+            window.setControllerClass(controller.getClass().getName());
+            window.setSettingsJson(
+                GSON.toJson(controller.getSettingsController().getCurrentSettings()));
 
-            window.title = controller.getStage().getTitle();
-            window.stageHeight = controller.getStage().getHeight();
-            window.stageWidth = controller.getStage().getWidth();
-            window.stageX = controller.getStage().getX();
-            window.stageY = controller.getStage().getY();
-            window.isVisible = controller.getStage().isShowing();
+            window.setTitle(controller.getStage().getTitle());
+            window.setStageHeight(controller.getStage().getHeight());
+            window.setStageWidth(controller.getStage().getWidth());
+            window.setStageX(controller.getStage().getX());
+            window.setStageY(controller.getStage().getY());
+            window.setVisible(controller.getStage().isShowing());
 
             result.add(window);
         }
@@ -324,20 +323,20 @@ public class MainMenuController extends Controller {
                 @SuppressWarnings("unchecked")
                 WindowWithSettingsController<?, ?> controller = Controller.Companion.createWithNewStage(
                         (Class<WindowWithSettingsController<?, ?>>)
-                                Class.forName(window.controllerClass));
+                                Class.forName(window.getControllerClass()));
 
-                Settings<?> settings = GSON.fromJson(window.settingsJson,
+                Settings<?> settings = GSON.fromJson(window.getSettingsJson(),
                     controller.getSettingsController().getCurrentSettings().getClass());
 
                 controller.getSettingsController().update(settings);
-                controller.getStage().setTitle(window.title);
-                controller.getStage().setWidth(window.stageWidth);
-                controller.getStage().setHeight(window.stageHeight);
-                controller.getStage().setX(window.stageX);
-                controller.getStage().setY(window.stageY);
+                controller.getStage().setTitle(window.getTitle());
+                controller.getStage().setWidth(window.getStageWidth());
+                controller.getStage().setHeight(window.getStageHeight());
+                controller.getStage().setX(window.getStageX());
+                controller.getStage().setY(window.getStageY());
                 controller.getStage().setOnCloseRequest(event -> windowListView.refresh());
 
-                if (window.isVisible) {
+                if (window.isVisible()) {
                     controller.show();
                 }
                 windowList.add(controller);

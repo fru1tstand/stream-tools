@@ -3,7 +3,7 @@ package me.fru1t.streamtools.controller.settings
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import me.fru1t.javafx.FxUtils
-import me.fru1t.streamtools.Settings
+import me.fru1t.streamtools.controller.Settings
 import me.fru1t.streamtools.util.KeyboardAndMouseStatistics
 
 /** Settings for the [me.fru1t.streamtools.controller.TextStatsController] window. */
