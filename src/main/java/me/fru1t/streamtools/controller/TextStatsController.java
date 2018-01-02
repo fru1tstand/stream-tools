@@ -4,7 +4,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.HPos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
-import me.fru1t.javafx.FXMLResource;
+import me.fru1t.javafx.FxmlResource;
 import me.fru1t.streamtools.controller.settings.TextStatsSettings;
 import me.fru1t.streamtools.javafx.WindowWithSettingsController;
 import me.fru1t.streamtools.util.KeyboardAndMouseStatistics;
@@ -12,7 +12,7 @@ import me.fru1t.streamtools.util.KeyboardAndMouseStatistics;
 /**
  * Controls the TextStats window.
  */
-@FXMLResource("/FXML/TextStats.fxml")
+@FxmlResource("/FXML/TextStats.fxml")
 public class TextStatsController
         extends WindowWithSettingsController<TextStatsSettings, TextStatsSettingsController> {
 
@@ -59,9 +59,9 @@ public class TextStatsController
     }
 
     @Override
-    public void onShutdown() {
+    public void shutdown() {
         stats.shutdown();
-        super.onShutdown();
+        super.shutdown();
     }
 
     @Override

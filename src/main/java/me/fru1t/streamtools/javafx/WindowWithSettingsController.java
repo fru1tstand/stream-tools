@@ -1,6 +1,6 @@
 package me.fru1t.streamtools.javafx;
 
-import javafx.stage.Stage;
+import javafx.beans.value.ChangeListener;
 import me.fru1t.javafx.Controller;
 import me.fru1t.streamtools.Settings;
 
@@ -17,6 +17,7 @@ public abstract class WindowWithSettingsController<S extends Settings<S>, T exte
         implements SettingsController.EventHandler<S> {
 
     private final SettingsController<S> settingsController;
+    private final ChangeListener<Number> sizeChangeListener;
 
     protected WindowWithSettingsController() {
         // This constructor grabs the type T from whatever class extended
@@ -33,27 +34,30 @@ public abstract class WindowWithSettingsController<S extends Settings<S>, T exte
 
         settingsController = Controller.Companion.createWithNewStage(settingsControllerClass);
         settingsController.addEventHandler(this);
+
+        sizeChangeListener =
+            (observable, oldValue, newValue)
+                -> onSettingsChange(settingsController.getCurrentSettings());
     }
 
     @Override
-    public void onShutdown() {
+    public void shutdown() {
         settingsController.removeEventHandler(this);
-        settingsController.onShutdown();
-        super.onShutdown();
+        settingsController.shutdown();
+        super.shutdown();
     }
 
     @Override
-    public void onStageProvide(Stage stage) {
-        super.onStageProvide(stage);
+    public void show() {
+        if (getStage() != null) {
+            getStage().widthProperty().removeListener(sizeChangeListener);
+            getStage().heightProperty().removeListener(sizeChangeListener);
+            getStage().widthProperty().addListener(sizeChangeListener);
+            getStage().heightProperty().addListener(sizeChangeListener);
+        }
 
-        // Set up scene resize listeners
-        stage.widthProperty().addListener((observable, oldValue, newValue)
-                -> onSettingsChange(settingsController.currentSettings));
-        stage.heightProperty().addListener((observable, oldValue, newValue)
-                -> onSettingsChange(settingsController.currentSettings));
-
-        // Update stage
         onSettingsChange(settingsController.getCurrentSettings());
+        super.show();
     }
 
     /**

@@ -5,9 +5,9 @@ import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.stage.Stage
 
-import java.io.IOException
 import java.util.logging.Level
 import java.util.logging.Logger
+import javax.annotation.OverridingMethodsMustInvokeSuper
 
 /**
  * Handles creation and destroying of FXML resource stages and scenes. Each FXML file should have
@@ -38,25 +38,27 @@ import java.util.logging.Logger
  *     a stage to the controller. A call to {@link #create(Class, Stage)} will
  *     guarantee that #onStageProvide follows immediately after #onSceneCreate.
  *   4. At this point, the controller is done setting up and normal usage may be assumed.
- *   5. {@link #onShutdown()} is eventually called.
+ *   5. {@link #shutdown()} is eventually called.
  */
 abstract class Controller {
   var stage: Stage? = null
-    private set
+    protected set
   lateinit var scene: Scene
     private set
 
   /** @return This controller's FXML resource path. */
-  fun getFxmlResourcePath() = this::class.java.superclass
-      .getDeclaredAnnotation(FXMLResource::class.java)!!
+  fun getFxmlResourcePath() = this.javaClass
+      .getDeclaredAnnotation(FxmlResource::class.java)!!
       .value
 
   /**
    * Shows this controller's stage if it contains one, and is not visible already. Otherwise,
-   * does nothing.
+   * does nothing. Overriding methods may modify the stage.
    */
+  @OverridingMethodsMustInvokeSuper
   open fun show() {
     if (stage != null) {
+      stage!!.scene = scene
       stage!!.show()
     } else {
       LOGGER.log(
@@ -68,8 +70,9 @@ abstract class Controller {
 
   /**
    * Hides this controller's stage if it contains one, and is already visible. Otherwise, does
-   * nothing.
+   * nothing. Overriding methods may modify the stage.
    */
+  @OverridingMethodsMustInvokeSuper
   open fun hide() {
     if (stage != null) {
       stage!!.hide()
@@ -82,35 +85,20 @@ abstract class Controller {
   }
 
   /**
-   * Override this method to customize the provided stage when this method is called. Passes a
-   * stage to the controller to set up (in terms of giving the screen, settings titles,
-   * etc). This method should not call [Stage.show] or any other visibility calls,
-   * otherwise undefined behavior will occur.
-   * @param stage The stage to set up.
-   */
-  // TODO: rename/create provideStage function
-  open fun onStageProvide(stage: Stage) {
-    this.stage = stage
-    stage.scene = scene
-  }
-
-  /**
    * Cleans up and destroys internal references to JavaFX objects. Any implementing class
    * should override this method and *call this super method after* the subclass's cleanup
    * methods are already handled. This method is called when the entire program is about to
    * shut down. This method is NOT CALLED when this controller's stage is closed or hidden.
    */
-  open fun onShutdown() {
-    if (stage != null && stage!!.isShowing) {
-      stage!!.close()
-    }
+  @OverridingMethodsMustInvokeSuper
+  open fun shutdown() {
+    stage?.close()
   }
 
-  // Optional "abstract" methods that aren't required to be overridden, but can be if the
-  // implementor requires them.
+  // Optional methods that can be overridden.
   /**
-   * Called after the scene has been set for this controller. At this point, any object fields
-   * annotated with @[javafx.fxml.FXML] are populated with their respective components.
+   * Called after the scene has been set for this controller. All Fxml fields, scene, and stage are
+   * initialized and available to use from this method.
    */
   protected open fun onSceneCreate() {
     // Method stub.
@@ -129,42 +117,42 @@ abstract class Controller {
     private val LOGGER = Logger.getLogger(Controller::class.java.name)
 
     /**
-     * Creates a new instance of an FXML layout returning the controller that controls it.
-     * @param controllerClass The controller class for the FXML layout.
-     * @param <T> The controller class for the FXML layout.
-     * @return The controller to the new layout instance.
+     * Inflates the layout associated to [controllerClass] optionally providing a [stage]. Returns
+     * the controller [T] with a fully inflated scene.
      */
-    fun <T : Controller> create(controllerClass: Class<T>): T {
-      // Get spec annotation
+    fun <T : Controller> create(controllerClass: Class<T>, stage: Stage? = null): T {
+      // FxmlResource annotation holds the location of the Fxml resource file
       val fxmlResourceAnnotation =
-          controllerClass.getDeclaredAnnotation(FXMLResource::class.java)
+          controllerClass.getDeclaredAnnotation(FxmlResource::class.java)
               ?: throw RuntimeException(
-                  controllerClass.toString()
-                      + " requires the "
-                      + FXMLResource::class.java.toString()
-                      + " annotation.")
+              controllerClass.toString()
+                  + " requires the "
+                  + FxmlResource::class.java.toString()
+                  + " annotation.")
 
-      // Get resource path
+      // Extract path
       val resourceUrl =
           controllerClass.getResource(fxmlResourceAnnotation.value)
               ?: throw RuntimeException(
-                  "Couldn't find the FXML file '"
-                      + fxmlResourceAnnotation.value
-                      + "' from controller "
-                      + controllerClass.toString())
+              "Couldn't find the FXML file '"
+                  + fxmlResourceAnnotation.value
+                  + "' from controller "
+                  + controllerClass.toString())
 
-      // Load the fxml
+      // Inflate the Fxml
       val loader = FXMLLoader(resourceUrl)
       val fxmlRoot: Parent = loader.load()
 
-      // Pass the root parent to the controller through a scene.
+      // Grab the controller
       val controller =
           loader.getController<T>()
               ?: throw RuntimeException(
-                  "FXML file "
-                      + fxmlResourceAnnotation.value
-                      + " has no "
-                      + "fx:controller defined in the root element.")
+              "FXML file "
+                  + fxmlResourceAnnotation.value
+                  + " has no fx:controller defined in the root element.")
+
+      // Set up fields within the controller
+      controller.stage = stage
       controller.scene = Scene(fxmlRoot)
       controller.onSceneCreate()
 
@@ -172,26 +160,9 @@ abstract class Controller {
     }
 
     /**
-     * Creates and provides a new instance of an FXML layout.
-     * @param controllerClass The controller to create.
-     * @param stage The stage to hand the controller.
-     * @param <T> The type of controller.
-     * @return The controller object.
-     * @see .create
-    </T> */
-    fun <T : Controller> create(controllerClass: Class<T>, stage: Stage): T {
-      val controller = create(controllerClass)
-      controller.onStageProvide(stage)
-      return controller
-    }
-
-    /**
-     * Creates a new instance of an FXML layout passing it a new stage.
-     * @param controllerClass The controller class to create.
-     * @param <T> The controller class.
-     * @return The controller instance.
-     * @see .create
-    </T> */
+     * Inflates the layout associated to [controllerClass] creating a new [Stage] and returning
+     * the controller [T] with a fully inflated scene.
+     */
     fun <T : Controller> createWithNewStage(controllerClass: Class<T>): T {
       return create(controllerClass, Stage())
     }

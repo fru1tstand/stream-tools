@@ -2,7 +2,7 @@ package me.fru1t.streamtools.controller.settings
 
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
-import me.fru1t.javafx.FXUtils
+import me.fru1t.javafx.FxUtils
 import me.fru1t.streamtools.Settings
 import me.fru1t.streamtools.util.KeyboardAndMouseStatistics
 
@@ -13,8 +13,8 @@ data class TextStatsSettings(
     var align: String = ALIGN_LEFT,
     var isBold: Boolean = false,
     var isItalic: Boolean = false,
-    var color: String = FXUtils.colorToHex(Color.BLACK),
-    var backgroundColor: String = FXUtils.colorToHex(Color.GREEN),
+    var color: String = FxUtils.colorToHex(Color.BLACK),
+    var backgroundColor: String = FxUtils.colorToHex(Color.GREEN),
     var content: String = "APM: {apm}\nPPM: {ppm}",
     var statsBufferSize: Int = KeyboardAndMouseStatistics.DEFAULT_BUFFER_SIZE
 ) : Settings<TextStatsSettings>() {

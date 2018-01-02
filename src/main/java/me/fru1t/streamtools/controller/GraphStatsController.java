@@ -8,12 +8,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
-import me.fru1t.javafx.FXMLResource;
+import me.fru1t.javafx.FxmlResource;
 import me.fru1t.streamtools.controller.settings.GraphStatsSettings;
 import me.fru1t.streamtools.javafx.WindowWithSettingsController;
 import me.fru1t.streamtools.util.KeyboardAndMouseStatistics;
 
-@FXMLResource("/FXML/GraphStats.fxml")
+@FxmlResource("/FXML/GraphStats.fxml")
 public class GraphStatsController
         extends WindowWithSettingsController<GraphStatsSettings, GraphStatsSettingsController> {
 
@@ -268,9 +268,9 @@ public class GraphStatsController
     }
 
     @Override
-    public void onShutdown() {
+    public void shutdown() {
         stats.shutdown();
-        super.onShutdown();
+        super.shutdown();
     }
 
     @Override

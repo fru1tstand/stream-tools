@@ -2,7 +2,6 @@ package me.fru1t.streamtools.controller.settings
 
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
-import me.fru1t.javafx.FXUtils
 import me.fru1t.javafx.SerializableColor
 import me.fru1t.streamtools.Settings
 import me.fru1t.streamtools.controller.settings.graph.FixedAxis

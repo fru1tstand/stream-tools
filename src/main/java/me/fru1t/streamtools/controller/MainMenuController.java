@@ -14,7 +14,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
 import me.fru1t.javafx.Controller;
-import me.fru1t.javafx.FXMLResource;
+import me.fru1t.javafx.FxmlResource;
 import me.fru1t.javafx.TextInputDialogUtils;
 import me.fru1t.streamtools.Settings;
 import me.fru1t.streamtools.Window;
@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 /**
  * First window that appears that handles window management.
  */
-@FXMLResource("/FXML/MainMenu.fxml")
+@FxmlResource("/FXML/MainMenu.fxml")
 public class MainMenuController extends Controller {
     private static final String SETTINGS_SAVE_FILE = "settings.json";
 
@@ -89,8 +89,6 @@ public class MainMenuController extends Controller {
 
     @Override
     protected void onSceneCreate() {
-        super.onSceneCreate();
-
         // Give underlying data set
         windowListView.setItems(windowList);
 
@@ -126,17 +124,17 @@ public class MainMenuController extends Controller {
     }
 
     @Override
-    public void onStageProvide(Stage stage) {
-        super.onStageProvide(stage);
-        stage.setResizable(false);
-        stage.setOnCloseRequest(event -> {
+    public void show() {
+        getStage().setResizable(false);
+        getStage().setOnCloseRequest(event -> {
             saveSettings();
             for (WindowWithSettingsController<?, ?> controller : windowList) {
-                controller.onShutdown();
+                controller.shutdown();
             }
             Platform.exit();
         });
-        stage.setTitle(MAIN_MENU_TITLE);
+        getStage().setTitle(MAIN_MENU_TITLE);
+        super.show();
     }
 
     @FXML
@@ -187,7 +185,7 @@ public class MainMenuController extends Controller {
             return;
         }
 
-        currentlySelectedController.onShutdown();
+        currentlySelectedController.shutdown();
         windowList.remove(currentlySelectedController);
         saveSettings();
     }
@@ -329,7 +327,7 @@ public class MainMenuController extends Controller {
                                 Class.forName(window.controllerClass));
 
                 Settings<?> settings = GSON.fromJson(window.settingsJson,
-                        controller.getSettingsController().getCurrentSettings().getClass());
+                    controller.getSettingsController().getCurrentSettings().getClass());
 
                 controller.getSettingsController().update(settings);
                 controller.getStage().setTitle(window.title);

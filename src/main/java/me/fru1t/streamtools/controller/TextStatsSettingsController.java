@@ -11,8 +11,8 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.StringConverter;
-import me.fru1t.javafx.FXMLResource;
-import me.fru1t.javafx.FXUtils;
+import me.fru1t.javafx.FxmlResource;
+import me.fru1t.javafx.FxUtils;
 import me.fru1t.streamtools.controller.settings.TextStatsSettings;
 import me.fru1t.streamtools.javafx.SettingsController;
 import org.controlsfx.glyphfont.FontAwesome;
@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 /**
  * Controller for the TextStatsSettings window. This ultimately controls the TextStats window.
  */
-@FXMLResource("/FXML/TextStatsSettings.fxml")
+@FxmlResource("/FXML/TextStatsSettings.fxml")
 public class TextStatsSettingsController extends SettingsController<TextStatsSettings> {
     private static final Logger LOGGER =
             Logger.getLogger(TextStatsSettingsController.class.getName());
@@ -95,38 +95,38 @@ public class TextStatsSettingsController extends SettingsController<TextStatsSet
 
     @Override
     protected void commitSettings() {
-        currentSettings.setFont(fontName.getValue());
-        currentSettings.setSize(size.getValue());
-        currentSettings.setBold(bold.isSelected());
-        currentSettings.setItalic(italic.isSelected());
-        currentSettings.setColor(FXUtils.colorToHex(textColor.getValue()));
-        currentSettings.setBackgroundColor(FXUtils.colorToHex(backgroundColor.getValue()));
-        currentSettings.setContent(content.getText());
+        getCurrentSettings().setFont(fontName.getValue());
+        getCurrentSettings().setSize(size.getValue());
+        getCurrentSettings().setBold(bold.isSelected());
+        getCurrentSettings().setItalic(italic.isSelected());
+        getCurrentSettings().setColor(FxUtils.INSTANCE.colorToHex(textColor.getValue()));
+        getCurrentSettings().setBackgroundColor(FxUtils.INSTANCE.colorToHex(backgroundColor.getValue()));
+        getCurrentSettings().setContent(content.getText());
 
-        currentSettings.setAlign(TextStatsSettings.Companion.getALIGN_LEFT());
+        getCurrentSettings().setAlign(TextStatsSettings.Companion.getALIGN_LEFT());
         if (centerJustify.isSelected()) {
-            currentSettings.setAlign(TextStatsSettings.Companion.getALIGN_CENTER());
+            getCurrentSettings().setAlign(TextStatsSettings.Companion.getALIGN_CENTER());
         } else if (rightJustify.isSelected()) {
-            currentSettings.setAlign(TextStatsSettings.Companion.getALIGN_RIGHT());
+            getCurrentSettings().setAlign(TextStatsSettings.Companion.getALIGN_RIGHT());
         }
     }
 
     @Override
-    protected void refresh() {
-        fontName.setValue(currentSettings.getFont());
-        size.setValue(currentSettings.getSize());
-        bold.setSelected(currentSettings.isBold());
-        italic.setSelected(currentSettings.isItalic());
-        textColor.setValue(Color.web(currentSettings.getColor()));
-        backgroundColor.setValue(Color.web(currentSettings.getBackgroundColor()));
-        content.setText(currentSettings.getContent());
+    protected void onSettingsChange() {
+        fontName.setValue(getCurrentSettings().getFont());
+        size.setValue(getCurrentSettings().getSize());
+        bold.setSelected(getCurrentSettings().isBold());
+        italic.setSelected(getCurrentSettings().isItalic());
+        textColor.setValue(Color.web(getCurrentSettings().getColor()));
+        backgroundColor.setValue(Color.web(getCurrentSettings().getBackgroundColor()));
+        content.setText(getCurrentSettings().getContent());
 
         leftJustify.setSelected(false);
         centerJustify.setSelected(false);
         rightJustify.setSelected(false);
-        if (currentSettings.getAlign().equals(TextStatsSettings.Companion.getALIGN_CENTER())) {
+        if (getCurrentSettings().getAlign().equals(TextStatsSettings.Companion.getALIGN_CENTER())) {
             centerJustify.setSelected(true);
-        } else if (currentSettings.getAlign().equals(TextStatsSettings.Companion.getALIGN_LEFT())) {
+        } else if (getCurrentSettings().getAlign().equals(TextStatsSettings.Companion.getALIGN_LEFT())) {
             leftJustify.setSelected(true);
         } else {
             rightJustify.setSelected(true);
