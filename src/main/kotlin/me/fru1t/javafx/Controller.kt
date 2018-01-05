@@ -1,10 +1,11 @@
 package me.fru1t.javafx
 
+import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.stage.Stage
-
+import me.fru1t.javafx.Controller.Companion.create
 import java.util.logging.Level
 import java.util.logging.Logger
 import javax.annotation.OverridingMethodsMustInvokeSuper
@@ -21,30 +22,27 @@ import javax.annotation.OverridingMethodsMustInvokeSuper
  * </RootElement>
  * ```
  *
- * The controller class MUST be annotated with the {@link FXMLResource} annotation in order
+ * The controller class MUST be annotated with the [FxmlResource] annotation in order
  * for this class to work properly:
  * ```
- *   @FXMLResource("path_to.fxml")
- *   public class MyClass extends Controller { ... }
+ *   @FxmlResource("/path_to.fxml")
+ *   class MyClass : Controller() { }
  * ```
  *
  * A controller's lifecycle is as follows:
- *   1. {@link #create(Class)} or any derivative #create method is called which
- *     triggers the FXMLLoader to instantiate a Controller object.
- *   2. {@link #onSceneCreate()} is immediately called. Here, all
- *     {@link javafx.fxml.FXML} annotated fields within the controller are already populated.
- *   3. {@link #onStageProvide(Stage)} is eventually called. Note that this call
- *     may not immediately proceed the #onSceneCreate call as the implementor may wait to give
- *     a stage to the controller. A call to {@link #create(Class, Stage)} will
- *     guarantee that #onStageProvide follows immediately after #onSceneCreate.
- *   4. At this point, the controller is done setting up and normal usage may be assumed.
- *   5. {@link #shutdown()} is eventually called.
+ *   1. [create] or any derivative #create method is called which triggers the FXMLLoader to
+ *      instantiate a Controller object and inflate its corresponding layout(s).
+ *   2. [onSceneCreate] is immediately called before [create] returns. By now, all @[FXML]
+ *      annotated fields within the controller are populated. The scene and stage (if one is
+ *      provided) are set at this point as well.
+ *   3. At this point, the controller is done setting up and normal usage may be assumed.
+ *   4. [shutdown] is eventually called.
  */
 abstract class Controller {
   var stage: Stage? = null
     protected set
   lateinit var scene: Scene
-    private set
+    protected set
 
   /** @return This controller's FXML resource path. */
   fun getFxmlResourcePath() = this.javaClass
