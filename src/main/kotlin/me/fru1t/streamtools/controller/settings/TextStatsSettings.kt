@@ -4,7 +4,7 @@ import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import me.fru1t.javafx.FxUtils
 import me.fru1t.streamtools.controller.Settings
-import me.fru1t.streamtools.util.KeyboardAndMouseStatistics
+import me.fru1t.streamtools.util.KeyboardAndMouseStatisticsImpl
 
 /** Settings for the [me.fru1t.streamtools.controller.TextStatsController] window. */
 data class TextStatsSettings(
@@ -16,7 +16,7 @@ data class TextStatsSettings(
     var color: String = FxUtils.colorToHex(Color.BLACK),
     var backgroundColor: String = FxUtils.colorToHex(Color.GREEN),
     var content: String = "APM: {apm}\nPPM: {ppm}",
-    var statsBufferSize: Int = KeyboardAndMouseStatistics.DEFAULT_BUFFER_SIZE
+    var statsBufferSize: Int = KeyboardAndMouseStatisticsImpl.DEFAULT_BUFFER_SIZE
 ) : Settings<TextStatsSettings>() {
   companion object {
     // TODO: Change to enum. wtf are you thinking

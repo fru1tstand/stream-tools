@@ -9,17 +9,21 @@ import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import me.fru1t.javafx.FxmlResource
+import me.fru1t.slik.Slik
+import me.fru1t.streamtools.StreamToolsApplication
 import me.fru1t.streamtools.controller.settings.GraphStatsSettings
 import me.fru1t.streamtools.javafx.WindowWithSettingsController
-import me.fru1t.streamtools.util.KeyboardAndMouseStatistics
+import me.fru1t.streamtools.util.KeyboardAndMouseStatisticsFactory
 
 /** Shows statistics in graph form. */
 @FxmlResource("/FXML/GraphStats.fxml")
-class GraphStatsController : WindowWithSettingsController<GraphStatsSettings, GraphStatsSettingsController>() {
+class GraphStatsController :
+    WindowWithSettingsController<GraphStatsSettings, GraphStatsSettingsController>() {
+  private val scope = Slik.get(StreamToolsApplication::class)
+  private val stats = scope.inject<KeyboardAndMouseStatisticsFactory>().create()
 
   @FXML private lateinit var canvas: Canvas
   private lateinit var ctx: GraphicsContext
-  private val stats: KeyboardAndMouseStatistics = KeyboardAndMouseStatistics()
 
   // Settings
   private lateinit var settings: GraphStatsSettings

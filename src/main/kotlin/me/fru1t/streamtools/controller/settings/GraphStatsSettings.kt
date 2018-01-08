@@ -6,12 +6,12 @@ import me.fru1t.javafx.SerializableColor
 import me.fru1t.streamtools.controller.Settings
 import me.fru1t.streamtools.controller.settings.graph.FixedAxis
 import me.fru1t.streamtools.controller.settings.graph.Statistic
-import me.fru1t.streamtools.util.KeyboardAndMouseStatistics
+import me.fru1t.streamtools.util.KeyboardAndMouseStatisticsImpl
 
 /** Settings for [me.fru1t.streamtools.controller.GraphStatsController]. */
 data class GraphStatsSettings(
     // ** General
-    var statsBufferSize: Int = KeyboardAndMouseStatistics.DEFAULT_BUFFER_SIZE,
+    var statsBufferSize: Int = KeyboardAndMouseStatisticsImpl.DEFAULT_BUFFER_SIZE,
     var graphHistoryTimeMS: Long = (1000 * 15).toLong(), // 1000 ms per second,
     var graphPoints: Int = 200,
     var backgroundColor: SerializableColor = SerializableColor("#0f0"),

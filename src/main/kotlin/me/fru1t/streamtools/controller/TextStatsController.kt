@@ -5,9 +5,11 @@ import javafx.geometry.HPos
 import javafx.scene.control.Label
 import javafx.scene.layout.GridPane
 import me.fru1t.javafx.FxmlResource
+import me.fru1t.slik.Slik
+import me.fru1t.streamtools.StreamToolsApplication
 import me.fru1t.streamtools.controller.settings.TextStatsSettings
 import me.fru1t.streamtools.javafx.WindowWithSettingsController
-import me.fru1t.streamtools.util.KeyboardAndMouseStatistics
+import me.fru1t.streamtools.util.KeyboardAndMouseStatisticsFactory
 
 /**
  * Text stats show a text-only window that shows customizable statistics. Use
@@ -16,11 +18,12 @@ import me.fru1t.streamtools.util.KeyboardAndMouseStatistics
 @FxmlResource("/FXML/TextStats.fxml")
 class TextStatsController :
     WindowWithSettingsController<TextStatsSettings, TextStatsSettingsController>() {
+  private val scope = Slik.get(StreamToolsApplication::class)
+  private val stats = scope.inject<KeyboardAndMouseStatisticsFactory>().create()
 
   @FXML private lateinit var textStatsLabel: Label
 
   private var content: String = ""
-  private val stats: KeyboardAndMouseStatistics = KeyboardAndMouseStatistics()
 
   override fun onUpdate(now: Long) {
     stats.tick()
