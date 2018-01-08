@@ -35,6 +35,7 @@ dependencies {
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
     compile group: 'org.controlsfx', name: 'controlsfx', version: '8.40.12'
     compile group: 'com.google.code.gson', name: 'gson', version: '2.8.1'
+    compile project(':libs/fm-slik-kotlin')
 
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junit_jupiter_version
     testCompile group: 'com.google.truth', name: 'truth', version: '0.33'
@@ -59,4 +60,11 @@ task fatJar(type: Jar) {
     baseName = project.name
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
 }
