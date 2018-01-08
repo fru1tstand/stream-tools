@@ -14,7 +14,7 @@ class ControllerTest : FxApplicationTest() {
   @Test
   fun getFxmlResourcePath() {
     val testController: Controller = ValidController()
-    assertThat(testController.getFxmlResourcePath()).isEqualTo("/FXML/Valid.fxml")
+    assertThat(testController.getFxmlResourcePath()).isEqualTo("/FXML/ControllerTest_Valid.fxml")
   }
 
   @FxTest
@@ -109,3 +109,34 @@ class ControllerTest : FxApplicationTest() {
     assertThat(testController.onSceneCreateCalls).isEqualTo(1)
   }
 }
+
+@FxmlResource("/FXML/ControllerTest_Valid.fxml")
+class ValidController(scene: Scene? = null, stage: Stage? = null) : Controller() {
+  var onSceneCreateCalls = 0
+  var onUpdateCalls = 0
+
+  init {
+    this.stage = stage
+    if (scene != null) {
+      this.scene = scene
+    }
+  }
+
+  override fun onSceneCreate() {
+    super.onSceneCreate()
+    ++onSceneCreateCalls
+  }
+
+  override fun onUpdate(now: Long) {
+    super.onUpdate(now)
+    ++onUpdateCalls
+  }
+}
+
+class NoFxmlResourceAnnotationController : Controller()
+
+@FxmlResource("/FXML/ControllerTest_NoController.fxml")
+class NoControllerController : Controller()
+
+@FxmlResource("/invalid/xml/path.fxml")
+class InvalidFxmlFileController : Controller()
