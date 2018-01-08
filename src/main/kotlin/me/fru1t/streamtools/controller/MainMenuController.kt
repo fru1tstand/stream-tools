@@ -12,10 +12,10 @@ import javafx.scene.control.Button
 import javafx.scene.control.ButtonType
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
+import javafx.scene.control.TextInputDialog
 import javafx.stage.Stage
 import me.fru1t.javafx.Controller
 import me.fru1t.javafx.FxmlResource
-import me.fru1t.javafx.TextInputDialogUtils
 import me.fru1t.streamtools.controller.mainmenu.Window
 import me.fru1t.streamtools.javafx.WindowWithSettingsController
 import org.apache.commons.lang3.StringUtils
@@ -129,8 +129,7 @@ class MainMenuController : Controller() {
     }
 
     val windowTitle =
-        TextInputDialogUtils.createShowAndWait(
-            RENAME_DIALOG_TITLE, null, RENAME_DIALOG_CONTENT_TEXT) ?: return
+        createDialogueShowAndWait(RENAME_DIALOG_TITLE, null, RENAME_DIALOG_CONTENT_TEXT) ?: return
 
     currentlySelectedController!!.stage!!.title = windowTitle
     windowListView.refresh()
@@ -218,7 +217,7 @@ class MainMenuController : Controller() {
   private fun <T : WindowWithSettingsController<*, *>> addWindow(windowWithSettingsClass: Class<T>) {
     // Ask for the window name
     val windowTitle =
-        TextInputDialogUtils.createShowAndWait(
+        createDialogueShowAndWait(
             ASK_FOR_NAME_DIALOG_TITLE, null, ASK_FOR_NAME_DIALOG_CONTENT_TEXT) ?: return
 
     // Create the stage and setup events
@@ -358,6 +357,16 @@ class MainMenuController : Controller() {
               .showAndWait()
         }
       }
+    }
+
+    private fun createDialogueShowAndWait(
+        title: String?, headerText: String?, contentText: String?): String? {
+      val dialog = TextInputDialog()
+      dialog.title = title
+      dialog.headerText = headerText
+      dialog.contentText = contentText
+      val result = dialog.showAndWait()
+      return result.orElse(null)
     }
   }
 }
