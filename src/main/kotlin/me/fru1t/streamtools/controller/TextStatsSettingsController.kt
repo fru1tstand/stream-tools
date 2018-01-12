@@ -99,7 +99,7 @@ class TextStatsSettingsController : SettingsController<TextStatsSettings>() {
     }
   }
 
-  override fun onSettingsChange() {
+  override fun onSettingsChange(settings: TextStatsSettings) {
     fontName.value = currentSettings.font
     size.value = currentSettings.size
     bold.isSelected = currentSettings.isBold

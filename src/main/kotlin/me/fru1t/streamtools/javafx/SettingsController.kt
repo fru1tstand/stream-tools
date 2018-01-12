@@ -5,10 +5,11 @@ import javafx.fxml.FXML
 import javafx.scene.control.Button
 import javax.annotation.OverridingMethodsMustInvokeSuper
 import me.fru1t.javafx.Controller
+import me.fru1t.kotlin.ConcurrentWeakReferenceHashSet
 import me.fru1t.streamtools.controller.Settings
+import java.lang.ref.WeakReference
 
 import java.lang.reflect.ParameterizedType
-import java.util.HashSet
 
 /**
  * A controller that manages a [Settings] object specified by [T] which is updated through the GUI.
@@ -23,12 +24,9 @@ abstract class SettingsController<T : Settings<T>> protected constructor() : Con
 
   // Class declarations
   val currentSettings: T
-  private val eventHandlers: HashSet<EventHandler<T>> = HashSet()
 
-  /** Possible events for the SettingsController.  */
-  interface EventHandler<T : Settings<T>> {
-    fun onSettingsChange(settings: T)
-  }
+  private val onSettingsChangeListeners: ConcurrentWeakReferenceHashSet<(T) -> Unit> =
+      ConcurrentWeakReferenceHashSet()
 
   init {
     // We need our own copy of settings, in order to do that, we just create a new instance of
@@ -55,8 +53,10 @@ abstract class SettingsController<T : Settings<T>> protected constructor() : Con
     } catch (e: InvocationTargetException) {
       throw RuntimeException(e)
     }
-  }
 
+    // Add ourselves to the list of event handlers
+    addOnSettingsChangeListener(::onSettingsChange)
+  }
 
   @OverridingMethodsMustInvokeSuper
   override fun onSceneCreate() {
@@ -84,15 +84,11 @@ abstract class SettingsController<T : Settings<T>> protected constructor() : Con
     settingsCancelButton.setOnAction { _ -> this@SettingsController.stage!!.hide() }
     settingsApplyButton.setOnAction { _ ->
       commitSettings()
-      for (handler in eventHandlers) {
-        handler.onSettingsChange(currentSettings)
-      }
+      onSettingsChangeListeners.forEach { it(currentSettings.copy()) }
     }
     settingsSaveButton.setOnAction { _ ->
       commitSettings()
-      for (handler in eventHandlers) {
-        handler.onSettingsChange(currentSettings)
-      }
+      onSettingsChangeListeners.forEach { it(currentSettings.copy()) }
       this@SettingsController.stage!!.hide()
     }
 
@@ -103,36 +99,28 @@ abstract class SettingsController<T : Settings<T>> protected constructor() : Con
   @OverridingMethodsMustInvokeSuper
   override fun show() {
     stage?.isResizable = false
-    onSettingsChange()
+    onSettingsChange(currentSettings)
     super.show()
   }
 
-  // Adds an event handler
-  fun addEventHandler(handler: EventHandler<T>) {
-    eventHandlers.add(handler)
-  }
-
-  // Removes an event handler
-  fun removeEventHandler(handler: EventHandler<T>) {
-    eventHandlers.remove(handler)
+  /**
+   * Adds a listener that is fired every time these settings change. The listener is passed a copy
+   * of the settings. Listeners are stored as [WeakReference]s, so they will be automatically
+   * garbage collected once the underlying object is gone.
+   */
+  fun addOnSettingsChangeListener(listener: (T) -> Unit) {
+    onSettingsChangeListeners.add(listener)
   }
 
   /** Updates the current settings with the given [settings], making a defensive copy. */
   fun update(settings: Settings<*>) {
     currentSettings.update(settings)
-    onSettingsChange()
-    eventHandlers.forEach { it.onSettingsChange(currentSettings) }
+    onSettingsChangeListeners.forEach { it(currentSettings.copy()) }
   }
 
-  /**
-   * Fired when the save button is clicked. The implementor should commit all GUI changes to
-   * the [currentSettings] object.
-   */
+  /** Commit all GUI changes to the [currentSettings] object. */
   protected abstract fun commitSettings()
 
-  /**
-   * Fired when the settings are changed. The implementor should update the GUI with values from
-   * [currentSettings]
-   */
-  protected abstract fun onSettingsChange()
+  /** Updates the GUI from the [currentSettings] object (or [settings]). */
+  protected abstract fun onSettingsChange(settings: T)
 }

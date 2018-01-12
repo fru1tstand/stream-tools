@@ -7,13 +7,14 @@ import me.fru1t.streamtools.controller.Settings
 import java.lang.reflect.ParameterizedType
 
 /**
- * A [Controller] that controls itself and a secondary [settingsController]. Requires the [Settings]
+ * A [Controller] that controls itself (eg. a graph or text or some other visual thing), and a
+ * secondary [settingsController] that handles this [Controller]'s settings. Requires the [Settings]
  * class [S] and the [SettingsController] class [T].
  */
-abstract class WindowWithSettingsController<S : Settings<S>, T : SettingsController<S>>
-  : Controller(), SettingsController.EventHandler<S> {
+abstract class WindowWithSettingsController<S : Settings<S>, T : SettingsController<S>> :
+    Controller() {
 
-  /** The secondary [Controller] that is the [SettingsController]. */
+  /** The [SettingsController] that will handle this window's [Settings]. */
   val settingsController: SettingsController<S>
 
   init {
@@ -26,11 +27,10 @@ abstract class WindowWithSettingsController<S : Settings<S>, T : SettingsControl
         windowWithSettingsControllerClass.actualTypeArguments[1] as Class<T>
 
     settingsController = Controller.createWithNewStage(settingsControllerClass)
-    settingsController.addEventHandler(this)
+    settingsController.addOnSettingsChangeListener(::onSettingsChange)
   }
 
   override fun shutdown() {
-    settingsController.removeEventHandler(this)
     settingsController.shutdown()
     super.shutdown()
   }
@@ -51,4 +51,7 @@ abstract class WindowWithSettingsController<S : Settings<S>, T : SettingsControl
   private fun onSizeChange(obs: ObservableValue<out Number>?, old: Number?, new: Number?) {
     onSettingsChange(settingsController.currentSettings)
   }
+
+  /** Updates the GUI from the [settings]. */
+  protected abstract fun onSettingsChange(settings: S)
 }

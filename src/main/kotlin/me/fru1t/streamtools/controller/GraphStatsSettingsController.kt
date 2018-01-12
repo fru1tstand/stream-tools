@@ -151,7 +151,7 @@ class GraphStatsSettingsController : SettingsController<GraphStatsSettings>() {
     // TODO
   }
 
-  override fun onSettingsChange() {
+  override fun onSettingsChange(settings: GraphStatsSettings) {
     // General
     statsSamplesField.text = currentSettings.statsBufferSize.toString() + ""
     historyWindowField.text = currentSettings.graphHistoryTimeMS.toString() + ""
