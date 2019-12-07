@@ -22,6 +22,9 @@ interface KeyboardAndMouseStatistics {
   /** Returns the current data metrics for the most recent time slice */
   fun getCurrentData(): CurrentData
 
+  /** Returns the total number of key presses for the given character. */
+  fun getTotalKeyPresses(char: Char): Long
+
   /** A pre-calculated return object. */
   data class CurrentData(
       val keyboardAPM: Int,

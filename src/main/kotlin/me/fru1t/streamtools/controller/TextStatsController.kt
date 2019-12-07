@@ -21,13 +21,23 @@ class TextStatsController :
   private val scope = Slik.get(StreamToolsApplication::class)
   private val stats = scope.inject<KeyboardAndMouseStatisticsFactory>().create()
 
-  @FXML private lateinit var textStatsLabel: Label
+  @FXML
+  private lateinit var textStatsLabel: Label
 
   private var content: String = ""
 
   override fun onUpdate(now: Long) {
     stats.tick()
     val (keyboardAPM, mousePPM, totalActions, totalPixels) = stats.getCurrentData()
+    var content = this.content
+
+    val totalKeypresses = TOTAL_KEYPRESS_REGEX.findAll(content)
+    totalKeypresses.forEach {
+      content = content.replace(
+          it.value,
+          stats.getTotalKeyPresses(it.groupValues[1][0]).toString())
+    }
+
     textStatsLabel.text =
         content.replace(ACTIONS_PER_MINUTE_PLACEHOLDER, keyboardAPM.toString())
             .replace(PIXELS_PER_MINUTE_PLACEHOLDER, mousePPM.toString())
@@ -75,6 +85,7 @@ class TextStatsController :
     private val PIXELS_PER_MINUTE_PLACEHOLDER = "{ppm}"
     private val TOTAL_ACTIONS_PLACEHOLDER = "{ta}"
     private val TOTAL_PIXELS_PLACEHOLDER = "{tp}"
+    private val TOTAL_KEYPRESS_REGEX = "\\{tk:(.)}".toRegex()
 
     private val TEXT_STATS_LABEL_STYLE =
         "-fx-font-family: \"%s\"; " +

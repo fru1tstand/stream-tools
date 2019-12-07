@@ -30,6 +30,7 @@ class KeyboardAndMouseStatisticsImpl internal constructor(bufferSize: Int = DEFA
   private var totalPixels = 0L
   private var lastTime = Date().time
   private var thisTime = 0L
+  private val totalKeyPresses: MutableMap<Char, Long> = HashMap()
 
   /**
    * The buffer size to determine averages for the statistics. Each [getCurrentData]
@@ -73,7 +74,6 @@ class KeyboardAndMouseStatisticsImpl internal constructor(bufferSize: Int = DEFA
     GlobalScreen.addNativeMouseMotionListener(this)
   }
 
-  /** Returns the current data metrics for the most recent time slice */
   override fun getCurrentData(): KeyboardAndMouseStatistics.CurrentData {
     // Calculate results
     var delta = 0.0
@@ -94,6 +94,10 @@ class KeyboardAndMouseStatisticsImpl internal constructor(bufferSize: Int = DEFA
     return KeyboardAndMouseStatistics.CurrentData((actions / delta).toInt(), // APM
         (movement / delta).toLong(), // PPM
         totalActions, totalPixels)
+  }
+
+  override fun getTotalKeyPresses(char: Char): Long {
+    return totalKeyPresses.getOrDefault(char, 0)
   }
 
   /** Un-registers this object from JNativeHook and shuts it down if it's the last listener. */
@@ -133,6 +137,8 @@ class KeyboardAndMouseStatisticsImpl internal constructor(bufferSize: Int = DEFA
     synchronized(currentData) {
       currentData.totalKeyboardActions++
     }
+    totalKeyPresses[nativeKeyEvent.rawCode.toChar()] =
+        totalKeyPresses.getOrDefault(nativeKeyEvent.rawCode.toChar(), 0) + 1
   }
 
   /**
