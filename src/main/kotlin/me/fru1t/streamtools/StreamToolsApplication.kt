@@ -13,6 +13,7 @@ import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT
 import org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT
+import org.lwjgl.opengl.GL11.GL_QUADS
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil.NULL
 import java.nio.IntBuffer
@@ -31,6 +32,8 @@ class StreamToolsApplication {
 
     private val RENDERER_FPS = 350
     private val _RENDERER_FPS_SLEEP_MS: Long = 1000L / RENDERER_FPS
+
+    private val BAR_GRAPH_BAR_COLOR: FloatArray = floatArrayOf(0.0f, 0.0f, 1.0f, 1.0f)
   }
 
   private val window: Long
@@ -93,20 +96,20 @@ class StreamToolsApplication {
     fpsSleepDeltaMs = _RENDERER_FPS_SLEEP_MS
 
     while (!GLFW.glfwWindowShouldClose(window)) {
-      // Clear frame buffer
-      GL11.glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+      // Poll for escape events
+      GLFW.glfwPollEvents()
 
+      // Redraw frame
+      GL11.glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+      redraw()
       GLFW.glfwSwapBuffers(window)
 
       // Calculate the remaining sleep time to keep the FPS at the set rendering fps
       currentFrameRenderTime = System.currentTimeMillis()
       fpsSleepDeltaMs = _RENDERER_FPS_SLEEP_MS - (currentFrameRenderTime - lastFrameRenderTime)
       lastFrameRenderTime = currentFrameRenderTime
-      if (fpsSleepDeltaMs > 0) {
-        Thread.sleep(fpsSleepDeltaMs)
-      }
 
-      // Prove FPS
+      // Print FPS to console
       ++fps
       if (currentFrameRenderTime - lastFpsPrintTime >= 1000) {
         println(fps)
@@ -114,8 +117,24 @@ class StreamToolsApplication {
         lastFpsPrintTime = currentFrameRenderTime
       }
 
-      GLFW.glfwPollEvents()
+      if (fpsSleepDeltaMs > 0) {
+        Thread.sleep(fpsSleepDeltaMs)
+      }
     }
+  }
+
+  private fun redraw() {
+    drawRect(0f, 0f, -1f, -0.5f, BAR_GRAPH_BAR_COLOR)
+  }
+
+  private fun drawRect(x: Float, y: Float, width: Float, height: Float, color: FloatArray) {
+    GL11.glColor4fv(color)
+    GL11.glBegin(GL_QUADS)
+    GL11.glVertex2f(-x, y)
+    GL11.glVertex2f(width, y)
+    GL11.glVertex2f(width, -height)
+    GL11.glVertex2f(-x, -height)
+    GL11.glEnd()
   }
 }
 
