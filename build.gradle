@@ -29,21 +29,6 @@ dependencies {
     implementation group: 'com.1stleg', name: 'jnativehook', version: '2.1.0'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
 
-    // LWJGL
-    implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
-    implementation "org.lwjgl:lwjgl"
-    implementation "org.lwjgl:lwjgl-assimp"
-    implementation "org.lwjgl:lwjgl-glfw"
-    implementation "org.lwjgl:lwjgl-openal"
-    implementation "org.lwjgl:lwjgl-opengl"
-    implementation "org.lwjgl:lwjgl-stb"
-    runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-assimp::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
-
     testImplementation group: 'com.google.truth', name: 'truth', version: '0.33'
     testImplementation group: 'com.nhaarman', name: 'mockito-kotlin', version: '1.5.0'
 }
