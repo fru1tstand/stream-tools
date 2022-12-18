@@ -7,7 +7,6 @@ import javax.swing.SwingUtilities
 import javax.swing.WindowConstants
 
 fun main() {
-
   val application = StreamToolsApplication()
   val countDownLatch = CountDownLatch(1)
   SwingUtilities.invokeLater {
@@ -18,6 +17,10 @@ fun main() {
   application.loop()
 }
 
+/**
+ * The window manager for StreamTools which handles bootstrapping the application, frame constructions, and showing the
+ * application window.
+ */
 class StreamToolsApplication {
   companion object {
     private val WINDOW_SIZE = Dimension(500, 300)
