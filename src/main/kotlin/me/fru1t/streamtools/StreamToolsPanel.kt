@@ -12,8 +12,8 @@ import kotlin.math.max
 /** The viewing panel displaying the graph and metrics. */
 class StreamToolsPanel(private val size: Dimension) : JPanel() {
   private companion object {
-    private val openSansBoldFont = FontsRegister.openSansBold.deriveFont(15f)
-    private val openSansFont = FontsRegister.openSans.deriveFont(14f)
+    private val textBarFont = FontsRegister.openSansBold.deriveFont(14f)
+    private val historyGraphFont = FontsRegister.openSans.deriveFont(12f)
     private val desktopHints: Map<*, *> =
       Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints") as Map<*, *>
 
@@ -24,7 +24,13 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
     private const val textBarWidth = 100
     private const val textBarFps = "FPS: %d"
     private const val textBarApm = "APM: %d"
+    private const val textBarCpm = "CPM: %d"
+    private const val textBarMpm = "MPM: %d"
+    private const val textBarActions = "Actions: %d"
+    private const val textBarClicks = "Clicks: %d"
 
+    private const val HISTORY_GRAPH_TITLE = "Actions per Minute (APM)"
+    private val historyGraphTitleColor = Color(170, 170, 255)
     private val historyGraphBorderColor = Color(150, 150, 255)
     private val historyGraphBarTextColor = Color.BLACK
     private val historyGraphBarColor = Color(200, 200, 255)
@@ -51,9 +57,9 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
       width = textBarWidth,
       lineHeight = 14,
       textColor = textBarTextColor,
-      textFont = openSansBoldFont,
+      textFont = textBarFont,
       backgroundColor = textBarBackgroundColor,
-      textPadding = 2
+      textPadding = 4
     )
   }
 
@@ -79,10 +85,18 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
 
     // Text
     g.color = textBarTextColor
-    g.font = openSansBoldFont
+    g.font = textBarFont
     textSideBarRenderer.addString(textBarApm.format(metricsStore.getInstantApm()))
+    textSideBarRenderer.addString(textBarCpm.format(metricsStore.getInstantClicksPerMinute()))
+    textSideBarRenderer.addString(textBarMpm.format(metricsStore.getInstantMovementPerMinute()))
+    textSideBarRenderer.addString(textBarActions.format(metricsStore.getTotalActions()))
+    textSideBarRenderer.addString(textBarClicks.format(metricsStore.getTotalMouseClicks()))
 
     // Bar graph
+    g.font = historyGraphFont
+    g.color = historyGraphTitleColor
+    g.drawString(HISTORY_GRAPH_TITLE, 3, 15)
+
     g.color = historyGraphBorderColor
     g.drawRect(0, 0, historyGraphWidth, size.height - 1)
     historyGraphApmValues = metricsStore.getHistoricalApm()
@@ -98,14 +112,14 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
       )
       if (value > 10) {
         g.color = historyGraphBarTextColor
-        g.font = openSansFont
+        g.font = historyGraphFont
         g.drawString(value.toString(), i * historyGraphBarWidth + 1, size.height - 2)
       }
     }
 
     // FPS
     if (SHOW_FPS) {
-      g.font = openSansBoldFont
+      g.font = textBarFont
       g.color = textBarTextColor
       currentRepaintTime = System.currentTimeMillis()
       lastRepaintTimeDelta[lastRepaintTimeDeltaIndex++] = currentRepaintTime - lastRepaintTime

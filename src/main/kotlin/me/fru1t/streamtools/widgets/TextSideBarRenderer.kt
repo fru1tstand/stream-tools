@@ -31,7 +31,7 @@ class TextSideBarRenderer(
 
   fun paintComponent(g: Graphics2D) {
     g.color = backgroundColor
-    g.fillRect(x, 0, width, content.size * lineHeight + 2)
+    g.fillRect(x, 0, width, content.size * lineHeight + 4)
     g.color = textColor
     g.font = textFont
     content.forEachIndexed { i, s -> g.drawString(s, x + textPadding, i * lineHeight + y) }

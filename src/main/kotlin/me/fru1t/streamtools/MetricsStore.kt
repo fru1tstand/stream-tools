@@ -36,6 +36,18 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
       5, // Mouse5 (ability 3)
       3, // Scroll wheel (ping)
     )
+    private val movementKeyCodes: Set<Int> = hashSetOf(
+      17, // W
+      30, // A
+      31, // S
+      32, // D
+      29, // Left CTRL (crouch)
+      57, // Space (Jump)
+    )
+    private val clickKeyCodes: Set<Int> = hashSetOf(
+      1, // Left click
+      2, // Right click
+    )
 
     // Capping out at ~1000APM even while spamming more than you would in a game. This is ~16APS. Double this to have a
     // reasonably impossible cap to reach. To be fair, we could make this buffer in the thousands and still not see a
@@ -49,6 +61,35 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
     // This translates into how many bars in the graph there are for the historical APM.
     const val HISTORICAL_APM_BUFFER_SIZE = 15
     private val ONE_MINUTE = Duration.ofSeconds(60)
+
+    private const val LAST_CLICKS_BUFFER_SIZE = 10
+    private val LAST_CLICKS_BUFFER_EXPIRATION_DURATION = Duration.ofMillis(2000)
+
+    private const val LAST_MOVEMENT_BUFFER_SIZE = 20
+    private val LAST_MOVEMENT_BUFFER_EXPIRATION_DURATION = Duration.ofMillis(2000)
+
+
+    /**
+     * Calculates an instantaneous "n" per minute by averaging the time between actions and extrapolating how many can
+     * fit in 60 seconds.
+     */
+    private fun getInstantIntPerMinute(buffer: Iterable<Instant>): Int {
+      var samples = 0
+      var totalDelay = 0L
+      var lastInput = 0L
+      buffer.iterator().forEach {
+        if (lastInput != 0L) {
+          samples++
+          totalDelay += it.toEpochMilli() - lastInput
+        }
+        lastInput = it.toEpochMilli()
+      }
+      if (samples == 0) {
+        return 0
+      }
+
+      return (60000.0 * samples / totalDelay).toInt()
+    }
   }
 
   private val clock = Clock.systemDefaultZone()
@@ -58,7 +99,13 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
     ExpiringCircularBuffer(LAST_ACTIONS_BUFFER_SIZE, LAST_ACTIONS_BUFFER_EXPIRATION_DURATION, clock)
   private val historicalApmBuffer: AccumulatingCircularBuffer<Int> = AccumulatingCircularBuffer(
     HISTORICAL_APM_BUFFER_SIZE, ONE_MINUTE, clock, 0, Int::plus)
+  private val lastClicksBuffer: ExpiringCircularBuffer<Instant> =
+    ExpiringCircularBuffer(LAST_CLICKS_BUFFER_SIZE, LAST_CLICKS_BUFFER_EXPIRATION_DURATION, clock)
+  private val lastMovementBuffer: ExpiringCircularBuffer<Instant> =
+    ExpiringCircularBuffer(LAST_MOVEMENT_BUFFER_SIZE, LAST_MOVEMENT_BUFFER_EXPIRATION_DURATION, clock)
   private val historicalApmArray: ArrayList<Int> = ArrayList(HISTORICAL_APM_BUFFER_SIZE)
+  private var totalActions = 0
+  private var totalMouseClicks = 0
 
   init {
     GlobalScreen.addNativeKeyListener(this)
@@ -70,23 +117,19 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
    * seconds. The number of samples taken is configured by the `lastActionsBuffer`, but requires at least 2 actions in
    * the buffer.
    */
-  fun getInstantApm(): Int {
-    var samples = 0
-    var totalDelay = 0L
-    var lastInput = 0L
-    lastActionsBuffer.iterator().forEach {
-      if (lastInput != 0L) {
-        samples++
-        totalDelay += it.toEpochMilli() - lastInput
-      }
-      lastInput = it.toEpochMilli()
-    }
-    if (samples == 0) {
-      return 0
-    }
+  fun getInstantApm(): Int = getInstantIntPerMinute(lastActionsBuffer)
 
-    return (60000.0 * samples / totalDelay).toInt()
-  }
+  /** Calculates an instantaneous clicks per minute with the same algorithm as the above APM calculation. */
+  fun getInstantClicksPerMinute(): Int = getInstantIntPerMinute(lastClicksBuffer)
+
+  /** Calculates an instantaneous clicks per minute with the same algorithm as the above APM calculation. */
+  fun getInstantMovementPerMinute(): Int = getInstantIntPerMinute(lastMovementBuffer)
+
+  /** Returns the total number of action keys pressed this session. */
+  fun getTotalActions(): Int = totalActions
+
+  /** Returns the total number of mouse clicks pressed this session. */
+  fun getTotalMouseClicks(): Int = totalMouseClicks
 
   /**
    * Returns the history of APM with each element in the array equating to the APM for that minute in history. Returns
@@ -108,6 +151,11 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
     if (pressedKeys[e.keyCode] == false) {
       lastActionsBuffer.add(clock.instant())
       historicalApmBuffer.add(1)
+      ++totalActions
+
+      if (movementKeyCodes.contains(e.keyCode)) {
+        lastMovementBuffer.add(clock.instant())
+      }
     }
     pressedKeys[e.keyCode] = true
   }
@@ -120,7 +168,15 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
   }
 
   override fun nativeMousePressed(e: NativeMouseEvent) {
-    lastActionsBuffer.add(clock.instant())
-    historicalApmBuffer.add(1)
+    if (actionMouseCodes.contains(e.button)) {
+      lastActionsBuffer.add(clock.instant())
+      historicalApmBuffer.add(1)
+      ++totalActions
+    }
+
+    if (clickKeyCodes.contains(e.button)) {
+      lastClicksBuffer.add(clock.instant())
+      ++totalMouseClicks
+    }
   }
 }
