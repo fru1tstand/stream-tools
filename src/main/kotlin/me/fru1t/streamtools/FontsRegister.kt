@@ -6,6 +6,7 @@ import java.awt.GraphicsEnvironment
 /** Holds references to bundled fonts. */
 object FontsRegister {
   val openSans: Font by lazyFont("OpenSans-Regular.ttf")
+  val openSansBold: Font by lazyFont("OpenSans-Bold.ttf")
 
   private fun lazyFont(filePath: String): Lazy<Font> {
     return lazy {

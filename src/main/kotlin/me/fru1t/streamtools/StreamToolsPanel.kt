@@ -12,36 +12,50 @@ import kotlin.math.max
 /** The viewing panel displaying the graph and metrics. */
 class StreamToolsPanel(private val size: Dimension) : JPanel() {
   private companion object {
+    private val openSansBoldFont = FontsRegister.openSansBold.deriveFont(15f)
     private val openSansFont = FontsRegister.openSans.deriveFont(14f)
     private val desktopHints: Map<*, *> =
       Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints") as Map<*, *>
 
-    private val frameBackgroundColor = Color.WHITE
+    private val frameBackgroundColor = Color.BLACK
 
-    private val textBarTextColor = Color.BLACK
+    private val textBarTextColor = Color.WHITE
+    private val textBarBackgroundColor = Color(100, 100, 200)
     private const val textBarWidth = 100
     private const val textBarFps = "FPS: %d"
     private const val textBarApm = "APM: %d"
-    private const val textBarHi = "Hi"
 
-    private val historyGraphBarColor = Color.BLUE
+    private val historyGraphBorderColor = Color(150, 150, 255)
+    private val historyGraphBarTextColor = Color.BLACK
+    private val historyGraphBarColor = Color(200, 200, 255)
     private const val HISTORY_GRAPH_BAR_APM_MIN_VALUE = 100
+
+    private const val SHOW_FPS = false
   }
 
   // Metrics
   private val metricsStore = MetricsStore()
 
-  // Text
-  private val textSideBarRenderer: TextSideBarRenderer by lazy {
-    TextSideBarRenderer(x = size.width - textBarWidth, y = 14, lineHeight = 14)
-  }
-
   // Graph
-  private val historyGraphWidth = size.width - textBarWidth
-  private val historyGraphBarWidth = historyGraphWidth / MetricsStore.HISTORICAL_APM_BUFFER_SIZE
+  private val historyGraphBarWidth = (size.width - textBarWidth) / MetricsStore.HISTORICAL_APM_BUFFER_SIZE
+  private val historyGraphWidth = historyGraphBarWidth * MetricsStore.HISTORICAL_APM_BUFFER_SIZE
   private var historyGraphApmMax = HISTORY_GRAPH_BAR_APM_MIN_VALUE
   private lateinit var historyGraphApmValues: ArrayList<Int>
   private var historyGraphBarHeightTempValue = 0
+
+  // Text
+  private val textSideBarRenderer: TextSideBarRenderer by lazy {
+    TextSideBarRenderer(
+      x = historyGraphWidth + 2,
+      y = 14,
+      width = textBarWidth,
+      lineHeight = 14,
+      textColor = textBarTextColor,
+      textFont = openSansBoldFont,
+      backgroundColor = textBarBackgroundColor,
+      textPadding = 2
+    )
+  }
 
   // FPS
   private var lastRepaintTime = System.currentTimeMillis()
@@ -65,35 +79,44 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
 
     // Text
     g.color = textBarTextColor
-    g.font = openSansFont
-    textSideBarRenderer.drawString(g, textBarHi)
-    textSideBarRenderer.drawString(g, textBarApm.format(metricsStore.getInstantApm()))
+    g.font = openSansBoldFont
+    textSideBarRenderer.addString(textBarApm.format(metricsStore.getInstantApm()))
 
     // Bar graph
-    g.color = historyGraphBarColor
+    g.color = historyGraphBorderColor
+    g.drawRect(0, 0, historyGraphWidth, size.height - 1)
     historyGraphApmValues = metricsStore.getHistoricalApm()
     historyGraphApmMax = max(historyGraphApmValues.max(), HISTORY_GRAPH_BAR_APM_MIN_VALUE)
     historyGraphApmValues.forEachIndexed { i, value ->
-      historyGraphBarHeightTempValue = (1.0 * value / historyGraphApmMax * size.height).toInt()
+      historyGraphBarHeightTempValue = (1.0 * value / historyGraphApmMax * (size.height - 1)).toInt()
+      g.color = historyGraphBarColor
       g.fillRect(
         i * historyGraphBarWidth,
-        size.height - historyGraphBarHeightTempValue,
+        size.height - historyGraphBarHeightTempValue - 1,
         historyGraphBarWidth,
         historyGraphBarHeightTempValue
       )
+      if (value > 10) {
+        g.color = historyGraphBarTextColor
+        g.font = openSansFont
+        g.drawString(value.toString(), i * historyGraphBarWidth + 1, size.height - 2)
+      }
     }
-    g.color = textBarTextColor
-    g.drawString(metricsStore.getHistoricalApm().toString(), 0, 100)
 
     // FPS
-    currentRepaintTime = System.currentTimeMillis()
-    lastRepaintTimeDelta[lastRepaintTimeDeltaIndex++] = currentRepaintTime - lastRepaintTime
-    lastRepaintTimeDeltaIndex %= lastRepaintTimeDelta.size
-    textSideBarRenderer.drawString(
-      g,
-      textBarFps.format((1000.0 * lastRepaintTimeDelta.size / lastRepaintTimeDelta.sum()).toInt())
-    )
-    lastRepaintTime = currentRepaintTime
+    if (SHOW_FPS) {
+      g.font = openSansBoldFont
+      g.color = textBarTextColor
+      currentRepaintTime = System.currentTimeMillis()
+      lastRepaintTimeDelta[lastRepaintTimeDeltaIndex++] = currentRepaintTime - lastRepaintTime
+      lastRepaintTimeDeltaIndex %= lastRepaintTimeDelta.size
+      textSideBarRenderer.addString(
+        textBarFps.format((1000.0 * lastRepaintTimeDelta.size / lastRepaintTimeDelta.sum()).toInt())
+      )
+      lastRepaintTime = currentRepaintTime
+    }
+
+    textSideBarRenderer.paintComponent(g)
   }
 
   override fun preferredSize(): Dimension = size
