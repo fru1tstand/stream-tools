@@ -31,6 +31,7 @@ dependencies {
 
     testImplementation group: 'com.google.truth', name: 'truth', version: '0.33'
     testImplementation group: 'com.nhaarman', name: 'mockito-kotlin', version: '1.5.0'
+    testImplementation 'junit:junit:4.13.1'
 }
 
 task fatJar(type: Jar) {
