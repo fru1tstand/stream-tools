@@ -9,6 +9,7 @@ import java.util.Collections
 /**
  * A fixed sized buffer that lazily evicts elements if they've expired, or overwrites old elements if the buffer has
  * filled. This buffer is optimized for inserts and expirations at O(1) with search (even for index 0) at O(n).
+ * **Iteration sequence of this buffer is FIFO.**
  *
  * The size of the buffer is actually `size + 1`, leaving the last element inaccessible. This reduces the number of
  * edge cases when finding the "head" of the collection (after elements have expired). This leaves 2 states the buffer
@@ -125,9 +126,7 @@ class ExpiringCircularBuffer<E : Any>(
   }
 
   override fun addAll(elements: Collection<E>): Boolean {
-    for (element in elements) {
-      add(element)
-    }
+    elements.forEach(this::add)
     return true
   }
 

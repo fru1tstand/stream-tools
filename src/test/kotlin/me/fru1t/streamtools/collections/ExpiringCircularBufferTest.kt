@@ -55,7 +55,7 @@ class ExpiringCircularBufferTest {
 
     val result = buffer.iterator().asSequence().toCollection(mutableListOf())
 
-    assertThat(result).containsExactly(6, 2, 3, 4, 5)
+    assertThat(result).containsExactly(2, 3, 4, 5, 6).inOrder()
   }
 
   @Test
