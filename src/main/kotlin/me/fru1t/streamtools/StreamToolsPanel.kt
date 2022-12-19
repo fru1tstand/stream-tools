@@ -3,7 +3,6 @@ package me.fru1t.streamtools
 import me.fru1t.streamtools.widgets.TextSideBarRenderer
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.FontMetrics
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Toolkit
@@ -19,12 +18,14 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
     private val frameBackgroundColor = Color.GREEN
 
     private val textBarTextColor = Color.BLACK
-    private const val textBarWidth = 75
+    private const val textBarWidth = 100
     private const val textBarFps = "FPS: %d"
+    private const val textBarApm = "APM: %d"
     private const val textBarHi = "Hi"
   }
 
-  private lateinit var g2d: Graphics2D
+  // Metrics
+  private val metricsStore = MetricsStore()
 
   // Text
   private val textSideBarRenderer: TextSideBarRenderer by lazy {
@@ -36,9 +37,6 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
   private var currentRepaintTime = System.currentTimeMillis()
   private val lastRepaintTimeDelta = LongArray(10)
   private var lastRepaintTimeDeltaIndex = 0
-
-  // Derived constants
-  private val _textBarX = size.width - textBarWidth
 
   override fun paintComponent(g: Graphics?) {
     if (g == null) {
@@ -58,6 +56,7 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
     g.color = textBarTextColor
     g.font = openSansFont
     textSideBarRenderer.drawString(g, textBarHi)
+    textSideBarRenderer.drawString(g, textBarApm.format(metricsStore.getInstantApm()))
 
     // Bar graph
 
