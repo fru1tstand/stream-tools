@@ -7,6 +7,7 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Toolkit
 import javax.swing.JPanel
+import kotlin.math.max
 
 /** The viewing panel displaying the graph and metrics. */
 class StreamToolsPanel(private val size: Dimension) : JPanel() {
@@ -15,13 +16,16 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
     private val desktopHints: Map<*, *> =
       Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints") as Map<*, *>
 
-    private val frameBackgroundColor = Color.GREEN
+    private val frameBackgroundColor = Color.WHITE
 
     private val textBarTextColor = Color.BLACK
     private const val textBarWidth = 100
     private const val textBarFps = "FPS: %d"
     private const val textBarApm = "APM: %d"
     private const val textBarHi = "Hi"
+
+    private val historyGraphBarColor = Color.BLUE
+    private const val HISTORY_GRAPH_BAR_APM_MIN_VALUE = 100
   }
 
   // Metrics
@@ -31,6 +35,13 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
   private val textSideBarRenderer: TextSideBarRenderer by lazy {
     TextSideBarRenderer(x = size.width - textBarWidth, y = 14, lineHeight = 14)
   }
+
+  // Graph
+  private val historyGraphWidth = size.width - textBarWidth
+  private val historyGraphBarWidth = historyGraphWidth / MetricsStore.HISTORICAL_APM_BUFFER_SIZE
+  private var historyGraphApmMax = HISTORY_GRAPH_BAR_APM_MIN_VALUE
+  private lateinit var historyGraphApmValues: ArrayList<Int>
+  private var historyGraphBarHeightTempValue = 0
 
   // FPS
   private var lastRepaintTime = System.currentTimeMillis()
@@ -59,6 +70,20 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
     textSideBarRenderer.drawString(g, textBarApm.format(metricsStore.getInstantApm()))
 
     // Bar graph
+    g.color = historyGraphBarColor
+    historyGraphApmValues = metricsStore.getHistoricalApm()
+    historyGraphApmMax = max(historyGraphApmValues.max(), HISTORY_GRAPH_BAR_APM_MIN_VALUE)
+    historyGraphApmValues.forEachIndexed { i, value ->
+      historyGraphBarHeightTempValue = (1.0 * value / historyGraphApmMax * size.height).toInt()
+      g.fillRect(
+        i * historyGraphBarWidth,
+        size.height - historyGraphBarHeightTempValue,
+        historyGraphBarWidth,
+        historyGraphBarHeightTempValue
+      )
+    }
+    g.color = textBarTextColor
+    g.drawString(metricsStore.getHistoricalApm().toString(), 0, 100)
 
     // FPS
     currentRepaintTime = System.currentTimeMillis()

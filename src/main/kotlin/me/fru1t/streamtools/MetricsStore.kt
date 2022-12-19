@@ -5,6 +5,7 @@ import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener
 import com.github.kwhat.jnativehook.mouse.NativeMouseEvent
 import com.github.kwhat.jnativehook.mouse.NativeMouseListener
+import me.fru1t.streamtools.collections.AccumulatingCircularBuffer
 import me.fru1t.streamtools.collections.ExpiringCircularBuffer
 import java.time.Clock
 import java.time.Duration
@@ -12,7 +13,7 @@ import java.time.Instant
 
 /** Tracks and stores metrics used within the StreamTools window. */
 class MetricsStore : NativeKeyListener, NativeMouseListener {
-  private companion object {
+  companion object {
     private val actionKeyCodes: Set<Int> = hashSetOf(
       17, // W
       30, // A
@@ -44,13 +45,20 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
     // 1 second is just long enough to have the information stick around to be read, but short enough that the graphics
     // don't feel artificially inflated/laggy. This is all subjective, of course.
     private val LAST_ACTIONS_BUFFER_EXPIRATION_DURATION = Duration.ofMillis(1000)
+
+    // This translates into how many bars in the graph there are for the historical APM.
+    const val HISTORICAL_APM_BUFFER_SIZE = 15
+    private val ONE_MINUTE = Duration.ofSeconds(60)
   }
 
   private val clock = Clock.systemDefaultZone()
 
+  private val pressedKeys: MutableMap<Int, Boolean> = hashMapOf()
   private val lastActionsBuffer: ExpiringCircularBuffer<Instant> =
     ExpiringCircularBuffer(LAST_ACTIONS_BUFFER_SIZE, LAST_ACTIONS_BUFFER_EXPIRATION_DURATION, clock)
-  private val pressedKeys: MutableMap<Int, Boolean> = hashMapOf()
+  private val historicalApmBuffer: AccumulatingCircularBuffer<Int> = AccumulatingCircularBuffer(
+    HISTORICAL_APM_BUFFER_SIZE, ONE_MINUTE, clock, 0, Int::plus)
+  private val historicalApmArray: ArrayList<Int> = ArrayList(HISTORICAL_APM_BUFFER_SIZE)
 
   init {
     GlobalScreen.addNativeKeyListener(this)
@@ -80,6 +88,16 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
     return (60000.0 * samples / totalDelay).toInt()
   }
 
+  /**
+   * Returns the history of APM with each element in the array equating to the APM for that minute in history. Returns
+   * in chronological order (history->now).
+   */
+  fun getHistoricalApm(): ArrayList<Int> {
+    historicalApmArray.clear()
+    historicalApmBuffer.iterator().asSequence().toCollection(historicalApmArray)
+    return historicalApmArray
+  }
+
   override fun nativeKeyPressed(e: NativeKeyEvent) {
     // Save memory by ignoring keys outside the scope of the actions. Not actually that many, whatever.
     if (!actionKeyCodes.contains(e.keyCode)) {
@@ -89,6 +107,7 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
     // Prevent a held key from spamming the buffer
     if (pressedKeys[e.keyCode] == false) {
       lastActionsBuffer.add(clock.instant())
+      historicalApmBuffer.add(1)
     }
     pressedKeys[e.keyCode] = true
   }
@@ -102,5 +121,6 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
 
   override fun nativeMousePressed(e: NativeMouseEvent) {
     lastActionsBuffer.add(clock.instant())
+    historicalApmBuffer.add(1)
   }
 }
