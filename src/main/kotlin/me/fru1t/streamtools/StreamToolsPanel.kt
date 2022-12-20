@@ -21,7 +21,7 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
 
     private val textBarTextColor = Color.WHITE
     private val textBarBackgroundColor = Color(100, 100, 200)
-    private const val textBarWidth = 100
+    private const val textBarWidth = 120
     private const val textBarFps = "FPS: %d"
     private const val textBarApm = "APM: %d"
     private const val textBarCpm = "CPM: %d"
@@ -29,12 +29,12 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
     private const val textBarActions = "Actions: %d"
     private const val textBarClicks = "Clicks: %d"
 
-    private const val HISTORY_GRAPH_TITLE = "Actions per Minute (APM)"
-    private val historyGraphTitleColor = Color(170, 170, 255)
     private val historyGraphBorderColor = Color(150, 150, 255)
-    private val historyGraphBarTextColor = Color.BLACK
     private val historyGraphBarColor = Color(200, 200, 255)
-    private const val HISTORY_GRAPH_BAR_APM_MIN_VALUE = 100
+    private const val HISTORY_GRAPH_BAR_APM_MIN_VALUE = 50
+
+    private const val HISTORY_GRAPH_GRID_LINES_EVERY = 25
+    private val historyGraphGridLinesColor = Color(125, 125, 200)
 
     private const val SHOW_FPS = false
   }
@@ -48,6 +48,8 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
   private var historyGraphApmMax = HISTORY_GRAPH_BAR_APM_MIN_VALUE
   private lateinit var historyGraphApmValues: ArrayList<Int>
   private var historyGraphBarHeightTempValue = 0
+  private var historyGraphGridlinesCounter = 0
+  private var historyGraphGridLinesHeightTempValue = 0
 
   // Text
   private val textSideBarRenderer: TextSideBarRenderer by lazy {
@@ -59,7 +61,7 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
       textColor = textBarTextColor,
       textFont = textBarFont,
       backgroundColor = textBarBackgroundColor,
-      textPadding = 4
+      textPadding = 2
     )
   }
 
@@ -93,28 +95,31 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
     textSideBarRenderer.addString(textBarClicks.format(metricsStore.getTotalMouseClicks()))
 
     // Bar graph
-    g.font = historyGraphFont
-    g.color = historyGraphTitleColor
-    g.drawString(HISTORY_GRAPH_TITLE, 3, 15)
-
     g.color = historyGraphBorderColor
     g.drawRect(0, 0, historyGraphWidth, size.height - 1)
-    historyGraphApmValues = metricsStore.getHistoricalApm()
+
+    historyGraphApmValues = metricsStore.getHistoricalActions()
     historyGraphApmMax = max(historyGraphApmValues.max(), HISTORY_GRAPH_BAR_APM_MIN_VALUE)
+
+    historyGraphGridlinesCounter = HISTORY_GRAPH_GRID_LINES_EVERY
+    g.color = historyGraphGridLinesColor
+    g.font = historyGraphFont
+    for (historyGraphGridlinesCounter in HISTORY_GRAPH_GRID_LINES_EVERY until historyGraphApmMax step HISTORY_GRAPH_GRID_LINES_EVERY) {
+      historyGraphGridLinesHeightTempValue =
+        size.height - (1.0 * historyGraphGridlinesCounter / historyGraphApmMax * (size.height - 1)).toInt()
+      g.drawLine(1, historyGraphGridLinesHeightTempValue, historyGraphWidth - 1, historyGraphGridLinesHeightTempValue)
+      g.drawString(historyGraphGridlinesCounter.toString(), 2, historyGraphGridLinesHeightTempValue - 2)
+    }
+
+    g.color = historyGraphBarColor
     historyGraphApmValues.forEachIndexed { i, value ->
       historyGraphBarHeightTempValue = (1.0 * value / historyGraphApmMax * (size.height - 1)).toInt()
-      g.color = historyGraphBarColor
       g.fillRect(
         i * historyGraphBarWidth,
         size.height - historyGraphBarHeightTempValue - 1,
         historyGraphBarWidth,
         historyGraphBarHeightTempValue
       )
-      if (value > 10) {
-        g.color = historyGraphBarTextColor
-        g.font = historyGraphFont
-        g.drawString(value.toString(), i * historyGraphBarWidth + 1, size.height - 2)
-      }
     }
 
     // FPS

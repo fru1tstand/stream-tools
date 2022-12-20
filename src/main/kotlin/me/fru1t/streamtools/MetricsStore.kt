@@ -59,14 +59,14 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
     private val LAST_ACTIONS_BUFFER_EXPIRATION_DURATION = Duration.ofMillis(1000)
 
     // This translates into how many bars in the graph there are for the historical APM.
-    const val HISTORICAL_APM_BUFFER_SIZE = 15
-    private val ONE_MINUTE = Duration.ofSeconds(60)
+    const val HISTORICAL_APM_BUFFER_SIZE = 60
+    private val HISTORICAL_APM_ACCUMULATION_DURATION = Duration.ofSeconds(15)
 
-    private const val LAST_CLICKS_BUFFER_SIZE = 10
-    private val LAST_CLICKS_BUFFER_EXPIRATION_DURATION = Duration.ofMillis(2000)
+    private const val LAST_CLICKS_BUFFER_SIZE = 20
+    private val LAST_CLICKS_BUFFER_EXPIRATION_DURATION = Duration.ofMillis(3000)
 
-    private const val LAST_MOVEMENT_BUFFER_SIZE = 20
-    private val LAST_MOVEMENT_BUFFER_EXPIRATION_DURATION = Duration.ofMillis(2000)
+    private const val LAST_MOVEMENT_BUFFER_SIZE = 40
+    private val LAST_MOVEMENT_BUFFER_EXPIRATION_DURATION = Duration.ofMillis(3000)
 
 
     /**
@@ -98,12 +98,12 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
   private val lastActionsBuffer: ExpiringCircularBuffer<Instant> =
     ExpiringCircularBuffer(LAST_ACTIONS_BUFFER_SIZE, LAST_ACTIONS_BUFFER_EXPIRATION_DURATION, clock)
   private val historicalApmBuffer: AccumulatingCircularBuffer<Int> = AccumulatingCircularBuffer(
-    HISTORICAL_APM_BUFFER_SIZE, ONE_MINUTE, clock, 0, Int::plus)
+    HISTORICAL_APM_BUFFER_SIZE, HISTORICAL_APM_ACCUMULATION_DURATION, clock, 0, Int::plus)
   private val lastClicksBuffer: ExpiringCircularBuffer<Instant> =
     ExpiringCircularBuffer(LAST_CLICKS_BUFFER_SIZE, LAST_CLICKS_BUFFER_EXPIRATION_DURATION, clock)
   private val lastMovementBuffer: ExpiringCircularBuffer<Instant> =
     ExpiringCircularBuffer(LAST_MOVEMENT_BUFFER_SIZE, LAST_MOVEMENT_BUFFER_EXPIRATION_DURATION, clock)
-  private val historicalApmArray: ArrayList<Int> = ArrayList(HISTORICAL_APM_BUFFER_SIZE)
+  private val historicalActionsAccumulationArray: ArrayList<Int> = ArrayList(HISTORICAL_APM_BUFFER_SIZE)
   private var totalActions = 0
   private var totalMouseClicks = 0
 
@@ -131,14 +131,11 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
   /** Returns the total number of mouse clicks pressed this session. */
   fun getTotalMouseClicks(): Int = totalMouseClicks
 
-  /**
-   * Returns the history of APM with each element in the array equating to the APM for that minute in history. Returns
-   * in chronological order (history->now).
-   */
-  fun getHistoricalApm(): ArrayList<Int> {
-    historicalApmArray.clear()
-    historicalApmBuffer.iterator().asSequence().toCollection(historicalApmArray)
-    return historicalApmArray
+  /** Returns the historical number of actions as counted by the buffer. */
+  fun getHistoricalActions(): ArrayList<Int> {
+    historicalActionsAccumulationArray.clear()
+    historicalApmBuffer.iterator().asSequence().toCollection(historicalActionsAccumulationArray)
+    return historicalActionsAccumulationArray
   }
 
   override fun nativeKeyPressed(e: NativeKeyEvent) {
