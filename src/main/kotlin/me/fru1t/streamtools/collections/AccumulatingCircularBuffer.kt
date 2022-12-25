@@ -23,15 +23,21 @@ import java.time.Instant
  *   default = 0, // 0 events by default
  *   reduce: Int::plus) // Reduce (aggregate) by adding the values
  * ```
+ *
+ * [report] is a function that's applied to each item when [AccumulatingCircularBuffer.iterator]'s `next` method is
+ * called. [report] is passed in the fully [reduce]d data and the number of entries the data represents and produces
+ * a final reported value.
  */
 class AccumulatingCircularBuffer<E : Any>(
   override val size: Int,
   private val accumulationDuration: Duration,
   private val clock: Clock,
   private val default: E,
-  private val reduce: (existing: E, new: E) -> E
+  private val reduce: (existing: E, new: E) -> E,
+  private val report: ((data: E, entries: Int) -> E)? = null
 ) : MutableCollection<E> {
-  private inner class Item<E : Any>(var data: E, var expirationInstant: Instant) {
+
+  private inner class Item<E>(var reducedData: E, var entries: Int, var expirationInstant: Instant) {
     lateinit var next: Item<E>
 
     /** Returns if this element should no longer be appended to due to the expiration time passing. */
@@ -42,7 +48,10 @@ class AccumulatingCircularBuffer<E : Any>(
    * Iterates through from the given [head] all the way around without repeating, assuming the list is linked in a
    * circular graph.
    */
-  private class SimpleListIterator<E : Any>(private val head: AccumulatingCircularBuffer<E>.Item<E>) :
+  private class SimpleListIterator<E : Any>(
+    private val head: AccumulatingCircularBuffer<E>.Item<E>,
+    private val reportTransformation: ((data: E, entries: Int) -> E)?
+  ) :
     MutableIterator<E> {
     // Treat the first element as special so we can mark that we've done a complete loop through the linked list
     private var current: AccumulatingCircularBuffer<E>.Item<E>? = null
@@ -59,14 +68,19 @@ class AccumulatingCircularBuffer<E : Any>(
       // we've looped back around to it
       nextReturnCache = current ?: head
       current = nextReturnCache.next
-      return nextReturnCache.data
+
+      if (nextReturnCache.entries == 0) {
+        return nextReturnCache.reducedData
+      }
+      return reportTransformation?.invoke(nextReturnCache.reducedData, nextReturnCache.entries)
+        ?: nextReturnCache.reducedData
     }
 
     override fun remove() = throw UnsupportedOperationException()
   }
 
   // The true "head" position should be updated every time we want to read or write to this data structure.
-  private var _head: Item<E> = Item(default, clock.instant().plus(accumulationDuration))
+  private var _head: Item<E> = Item(default, 0, clock.instant().plus(accumulationDuration))
   private val head: Item<E>
     get() {
       // It's possible that the next time this data structure is accessed is AFTER the next "bucket" of accumulation has
@@ -80,7 +94,8 @@ class AccumulatingCircularBuffer<E : Any>(
 
         newExpirationInstant = _head.expirationInstant.plus(accumulationDuration)
         _head = _head.next
-        _head.data = default
+        _head.reducedData = default
+        _head.entries = 0
         _head.expirationInstant = newExpirationInstant
       }
     }
@@ -89,7 +104,7 @@ class AccumulatingCircularBuffer<E : Any>(
     val firstElement = _head
     var temp: Item<E>
     for (i in 1 until size) {
-      temp = Item(default, Instant.EPOCH)
+      temp = Item(default, 0, Instant.EPOCH)
       _head.next = temp
       _head = _head.next
     }
@@ -98,7 +113,9 @@ class AccumulatingCircularBuffer<E : Any>(
   }
 
   override fun add(element: E): Boolean {
-    head.data = reduce(head.data, element)
+    val headReference = head
+    headReference.reducedData = reduce(head.reducedData, element)
+    ++headReference.entries
     return true
   }
 
@@ -109,7 +126,7 @@ class AccumulatingCircularBuffer<E : Any>(
 
   override fun isEmpty(): Boolean = false
 
-  override fun iterator(): MutableIterator<E> = SimpleListIterator(head.next)
+  override fun iterator(): MutableIterator<E> = SimpleListIterator(head.next, report)
 
   // Unsupported operations. I mean, you /can/ implement these. But they're unused in StreamTools.
   override fun clear() = throw UnsupportedOperationException()

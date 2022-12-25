@@ -88,4 +88,21 @@ class AccumulatingCircularBufferTest {
 
     assertThat(result).containsExactly(0, 0, 0, 0, 0).inOrder()
   }
+
+  @Test
+  fun insertWithReport() {
+    buffer = AccumulatingCircularBuffer(
+      size = TEST_BUFFER_SIZE,
+      accumulationDuration = TEST_ACCUMULATION_DURATION,
+      clock = mockClock,
+      default = 0,
+      reduce = Int::plus,
+      report = { reducedData, entries -> reducedData / entries}
+    )
+    buffer.addAll(arrayOf(10, 20))
+
+    val result = buffer.iterator().asSequence().toCollection(mutableListOf())
+
+    assertThat(result).containsExactly(0, 0, 0, 0, 15).inOrder()
+  }
 }
