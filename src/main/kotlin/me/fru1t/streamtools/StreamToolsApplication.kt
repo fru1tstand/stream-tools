@@ -26,7 +26,7 @@ fun main() {
  */
 class StreamToolsApplication {
   companion object {
-    private val WINDOW_SIZE = Dimension(600, 100)
+    private val WINDOW_SIZE = Dimension(700, 100)
 
     private const val RENDERER_FPS = 144
     private const val _RENDERER_FPS_SLEEP_MS: Long = 1000L / RENDERER_FPS

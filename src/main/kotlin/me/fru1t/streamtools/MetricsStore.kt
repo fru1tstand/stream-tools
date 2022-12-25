@@ -59,8 +59,8 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
     private val LAST_ACTIONS_BUFFER_EXPIRATION_DURATION = Duration.ofMillis(1000)
 
     // This translates into how many bars in the graph there are for the historical APM.
-    const val HISTORICAL_APM_BUFFER_SIZE = 60
-    private val HISTORICAL_APM_ACCUMULATION_DURATION = Duration.ofSeconds(15)
+    const val HISTORICAL_APM_BUFFER_SIZE = 180
+    private val HISTORICAL_APM_ACCUMULATION_DURATION = Duration.ofSeconds(5)
 
     private const val LAST_CLICKS_BUFFER_SIZE = 20
     private val LAST_CLICKS_BUFFER_EXPIRATION_DURATION = Duration.ofMillis(3000)
