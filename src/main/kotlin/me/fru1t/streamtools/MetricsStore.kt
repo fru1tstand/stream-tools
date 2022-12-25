@@ -97,13 +97,17 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
   private val pressedKeys: MutableMap<Int, Boolean> = hashMapOf()
   private val lastActionsBuffer: ExpiringCircularBuffer<Instant> =
     ExpiringCircularBuffer(LAST_ACTIONS_BUFFER_SIZE, LAST_ACTIONS_BUFFER_EXPIRATION_DURATION, clock)
-  private val historicalApmBuffer: AccumulatingCircularBuffer<Int> = AccumulatingCircularBuffer(
-    HISTORICAL_APM_BUFFER_SIZE, HISTORICAL_APM_ACCUMULATION_DURATION, clock, 0, Int::plus)
+  // Stores the sum of deltas between action presses
+  private val historicalApmBuffer: AccumulatingCircularBuffer<Long> = AccumulatingCircularBuffer(
+    HISTORICAL_APM_BUFFER_SIZE, HISTORICAL_APM_ACCUMULATION_DURATION, clock, 0L, Long::plus
+  ) { reducedData, entries -> (60000.0 / (reducedData / entries)).toLong() }
+  private var lastActionTime: Long = -1L
+  private var currentActionTime: Long = -1L
   private val lastClicksBuffer: ExpiringCircularBuffer<Instant> =
     ExpiringCircularBuffer(LAST_CLICKS_BUFFER_SIZE, LAST_CLICKS_BUFFER_EXPIRATION_DURATION, clock)
   private val lastMovementBuffer: ExpiringCircularBuffer<Instant> =
     ExpiringCircularBuffer(LAST_MOVEMENT_BUFFER_SIZE, LAST_MOVEMENT_BUFFER_EXPIRATION_DURATION, clock)
-  private val historicalActionsAccumulationArray: ArrayList<Int> = ArrayList(HISTORICAL_APM_BUFFER_SIZE)
+  private val historicalActionsAccumulationArray: ArrayList<Long> = ArrayList(HISTORICAL_APM_BUFFER_SIZE)
   private var totalActions = 0
   private var totalMouseClicks = 0
 
@@ -132,7 +136,7 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
   fun getTotalMouseClicks(): Int = totalMouseClicks
 
   /** Returns the historical number of actions as counted by the buffer. */
-  fun getHistoricalActions(): ArrayList<Int> {
+  fun getHistoricalActions(): ArrayList<Long> {
     historicalActionsAccumulationArray.clear()
     historicalApmBuffer.iterator().asSequence().toCollection(historicalActionsAccumulationArray)
     return historicalActionsAccumulationArray
@@ -147,7 +151,7 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
     // Prevent a held key from spamming the buffer
     if (pressedKeys[e.keyCode] == false) {
       lastActionsBuffer.add(clock.instant())
-      historicalApmBuffer.add(1)
+      addToHistoricalActions()
       ++totalActions
 
       if (movementKeyCodes.contains(e.keyCode)) {
@@ -167,7 +171,7 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
   override fun nativeMousePressed(e: NativeMouseEvent) {
     if (actionMouseCodes.contains(e.button)) {
       lastActionsBuffer.add(clock.instant())
-      historicalApmBuffer.add(1)
+      addToHistoricalActions()
       ++totalActions
     }
 
@@ -175,5 +179,13 @@ class MetricsStore : NativeKeyListener, NativeMouseListener {
       lastClicksBuffer.add(clock.instant())
       ++totalMouseClicks
     }
+  }
+
+  private fun addToHistoricalActions() {
+    currentActionTime = clock.instant().toEpochMilli()
+    if (lastActionTime > 0) {
+      historicalApmBuffer.add(currentActionTime - lastActionTime)
+    }
+    lastActionTime = currentActionTime
   }
 }

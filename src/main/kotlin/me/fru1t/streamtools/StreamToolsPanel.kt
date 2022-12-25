@@ -31,9 +31,9 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
 
     private val historyGraphBorderColor = Color(150, 150, 255)
     private val historyGraphBarColor = Color(200, 200, 255)
-    private const val HISTORY_GRAPH_BAR_APM_MIN_VALUE = 100
+    private const val HISTORY_GRAPH_BAR_APM_MIN_VALUE = 100L
 
-    private const val HISTORY_GRAPH_GRID_LINES_EVERY = 20
+    private const val HISTORY_GRAPH_GRID_LINES_EVERY = 50L
     private val historyGraphGridLinesColor = Color(125, 125, 200)
 
     private const val SHOW_FPS = false
@@ -46,9 +46,9 @@ class StreamToolsPanel(private val size: Dimension) : JPanel() {
   private val historyGraphBarWidth = (size.width - textBarWidth) / MetricsStore.HISTORICAL_APM_BUFFER_SIZE
   private val historyGraphWidth = historyGraphBarWidth * MetricsStore.HISTORICAL_APM_BUFFER_SIZE
   private var historyGraphApmMax = HISTORY_GRAPH_BAR_APM_MIN_VALUE
-  private lateinit var historyGraphApmValues: ArrayList<Int>
+  private lateinit var historyGraphApmValues: ArrayList<Long>
   private var historyGraphBarHeightTempValue = 0
-  private var historyGraphGridlinesCounter = 0
+  private var historyGraphGridlinesCounter = 0L
   private var historyGraphGridLinesHeightTempValue = 0
 
   // Text
